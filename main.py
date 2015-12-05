@@ -31,7 +31,22 @@ class Data:
 
         # for i in tmp:
         #     print(i.lstrip())
+    @staticmethod
+    def word_tokenizer(sen):
+        tmp = []
+        counter = -1
+        for idx, c in enumerate(sen):
+            if c.isalpha():
+                if sen[idx - 1].isalpha() is False or idx == 0:
+                    tmp.append(str(''))
+                    counter += 1
+                tmp[counter] += c
+        return tmp
 
+    def do_word_list(self):
+        words = self.file.replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').split()
+        words = sorted(words)
+        print(words)
 
     def do_list(self):
         self.sentence_list = self.file.splitlines()
@@ -73,7 +88,7 @@ def main():
     text = f.read()
     f.close()
     data = Data(text)
-    data.do_sentence_list()
+    data.word_tokenizer("test!!ii am ")
 
     print("list all vocabulary")
     print("file name\t", settings.file_name)

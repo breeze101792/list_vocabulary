@@ -71,10 +71,14 @@ class Data:
                 self.word_counter.append(cbuf)
                 cidx += cbuf;
             else:
-                self.word_list.append(self.word_extracter(tmp_words[cidx]))
                 cbuf = tmp_words.count(tmp_words[cidx])
-                self.word_counter.append(cbuf)
-                cidx += cbuf;
+                for each_word in self.word_extracter(tmp_words[cidx]):
+                    if each_word in self.word_list:
+                        self.word_counter[self.word_list.index(each_word)] += cbuf
+                    else:
+                        self.word_list.append(each_word)
+                        self.word_counter.append(cbuf)
+                    cidx += cbuf;
 
         # self.words = dict({key: val for key, val in zip(self.word_list, self.word_counter)})
         # printfun(sorted(self.words))
@@ -126,9 +130,9 @@ def main():
     text = f.read()
     f.close()
     data = Data(text)
-    print('-Apple\'s,i-phone!')
-    print(data.word_extracter('-Apple\'s,i-phone!'))
-    # data.do_word_list()
+    # print('-Apple\'s,i-phone!')
+    # print(data.word_extracter('-Apple\'s,i-phone!'))
+    data.do_word_list()
 
 if __name__ == '__main__':
     main()

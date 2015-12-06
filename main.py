@@ -10,7 +10,9 @@ class Data:
     def __init__(self, file = None):
         self.file = file
         self.sentence_list = file
-        self.word_list = None
+        # self.words = None
+        self.word_list = []
+        self.word_counter = []
     def do_sentence_list(self):
         tmp_list = self.file.replace('\n', ' ').replace('  ', ' ').splitlines()
         tmp = []
@@ -32,21 +34,52 @@ class Data:
         # for i in tmp:
         #     print(i.lstrip())
     @staticmethod
-    def word_tokenizer(sen):
+    def word_extracter(word):
         tmp = []
-        counter = -1
-        for idx, c in enumerate(sen):
-            if c.isalpha():
-                if sen[idx - 1].isalpha() is False or idx == 0:
-                    tmp.append(str(''))
-                    counter += 1
-                tmp[counter] += c
+        # for idx, word in enumerate(sen):
+        while word[0].isalpha() is False or word[-1].isalpha() is False:
+            print(word)
+            if word[0].isalpha() is not True:
+                word = word[1:]
+            if word[-1].isalpha() is not True:
+                word = word[:-2]
+        if word.replace('\'', 'z').replace('-', 'z').isalpha() :
+            return [word]
+        else:
+            wbuf = ''
+            for char in word:
+                if char.isalpha() or char == '\'' or char == '-':
+                    wbuf += char
+                else:
+                    tmp.append(wbuf)
+                    wbuf = ''
+            if wbuf != '':
+                tmp.append(wbuf)
         return tmp
 
     def do_word_list(self):
-        words = self.file.replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').split()
-        words = sorted(words)
-        print(words)
+        tmp_words = self.file.replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').split()
+        tmp_words = sorted(tmp_words)
+        self.word_list = []
+        self.word_counter =  []
+        cidx = 0
+        cbuf = 0
+        while cidx < len(tmp_words):
+            if tmp_words[cidx].isalpha() or True:
+                self.word_list.append(tmp_words[cidx])
+                cbuf = tmp_words.count(tmp_words[cidx])
+                self.word_counter.append(cbuf)
+                cidx += cbuf;
+            else:
+                self.word_list.append(self.word_extracter(tmp_words[cidx]))
+                cbuf = tmp_words.count(tmp_words[cidx])
+                self.word_counter.append(cbuf)
+                cidx += cbuf;
+
+        # self.words = dict({key: val for key, val in zip(self.word_list, self.word_counter)})
+        # printfun(sorted(self.words))
+        for voc, times in zip(self.word_list, self.word_counter):
+            print(voc + " : " + times.__str__())
 
     def do_list(self):
         self.sentence_list = self.file.splitlines()
@@ -79,6 +112,11 @@ def main():
     #set up settings.py!
     if options.file_name is not None:
         settings.file_name = options.file_name
+    else:
+        settings.file_name = "data/i have a dream.txt"
+
+    print("list all vocabulary")
+    print("file name\t", settings.file_name)
 
     # open file
     # with open(settings.file_name) as f:
@@ -88,10 +126,9 @@ def main():
     text = f.read()
     f.close()
     data = Data(text)
-    data.word_tokenizer("test!!ii am ")
-
-    print("list all vocabulary")
-    print("file name\t", settings.file_name)
+    print('-Apple\'s,i-phone!')
+    print(data.word_extracter('-Apple\'s,i-phone!'))
+    # data.do_word_list()
 
 if __name__ == '__main__':
     main()

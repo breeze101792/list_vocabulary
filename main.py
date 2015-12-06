@@ -38,10 +38,11 @@ class Data:
         tmp = []
         # for idx, word in enumerate(sen):
         while word[0].isalpha() is False or word[-1].isalpha() is False:
-            print(word)
-            if word[0].isalpha() is not True:
+            if len(word) == 1 and word.isalpha() is False:
+                return []
+            elif word[0].isalpha() is not True:
                 word = word[1:]
-            if word[-1].isalpha() is not True:
+            elif word[-1].isalpha() is not True:
                 word = word[:-2]
         if word.replace('\'', 'z').replace('-', 'z').isalpha() :
             return [word]
@@ -58,14 +59,14 @@ class Data:
         return tmp
 
     def do_word_list(self):
-        tmp_words = self.file.replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').split()
+        tmp_words = self.file.replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').lower().split()
         tmp_words = sorted(tmp_words)
         self.word_list = []
         self.word_counter =  []
         cidx = 0
         cbuf = 0
         while cidx < len(tmp_words):
-            if tmp_words[cidx].isalpha() or True:
+            if tmp_words[cidx].isalpha():
                 self.word_list.append(tmp_words[cidx])
                 cbuf = tmp_words.count(tmp_words[cidx])
                 self.word_counter.append(cbuf)
@@ -78,18 +79,22 @@ class Data:
                     else:
                         self.word_list.append(each_word)
                         self.word_counter.append(cbuf)
-                    cidx += cbuf;
+                cidx += cbuf;
 
         # self.words = dict({key: val for key, val in zip(self.word_list, self.word_counter)})
         # printfun(sorted(self.words))
-        for voc, times in zip(self.word_list, self.word_counter):
-            print(voc + " : " + times.__str__())
+        # for voc, times in zip(self.word_list, self.word_counter):
+        #     print(voc + " : " + times.__str__())
 
     def do_list(self):
         self.sentence_list = self.file.splitlines()
         for line in self.sentence_list:
             print(line + "\n")
         pass
+    def word_report(self):
+        for times, voc in sorted(zip(self.word_counter, self.word_list), reverse=True):
+            print(voc + ": " + times.__str__())
+            # self.word_counter[self.word_list.index(voc)].__str__())
 class Word:
     pass
 
@@ -130,9 +135,9 @@ def main():
     text = f.read()
     f.close()
     data = Data(text)
-    # print('-Apple\'s,i-phone!')
-    # print(data.word_extracter('-Apple\'s,i-phone!'))
+    # print(data.word_extracter('--app\'ss,dd!!'))
     data.do_word_list()
+    data.word_report()
 
 if __name__ == '__main__':
     main()

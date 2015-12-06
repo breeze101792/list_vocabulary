@@ -34,7 +34,7 @@ class Data:
         # for i in tmp:
         #     print(i.lstrip())
     @staticmethod
-    def word_extracter(word):
+    def word_extractor(word):
         tmp = []
         # for idx, word in enumerate(sen):
         while word[0].isalpha() is False or word[-1].isalpha() is False:
@@ -73,7 +73,7 @@ class Data:
                 cidx += cbuf;
             else:
                 cbuf = tmp_words.count(tmp_words[cidx])
-                for each_word in self.word_extracter(tmp_words[cidx]):
+                for each_word in self.word_extractor(tmp_words[cidx]):
                     if each_word in self.word_list:
                         self.word_counter[self.word_list.index(each_word)] += cbuf
                     else:
@@ -93,7 +93,7 @@ class Data:
         pass
     def word_report(self):
         for times, voc in sorted(zip(self.word_counter, self.word_list), reverse=True):
-            print(voc + ": " + times.__str__())
+            print(voc + ":\t" + times.__str__())
             # self.word_counter[self.word_list.index(voc)].__str__())
 class Word:
     pass
@@ -135,7 +135,7 @@ def main():
     text = f.read()
     f.close()
     data = Data(text)
-    # print(data.word_extracter('--app\'ss,dd!!'))
+    # print(data.word_extractor('--app\'ss,dd!!'))
     data.do_word_list()
     data.word_report()
 

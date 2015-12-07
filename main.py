@@ -34,17 +34,18 @@ class Data:
         # for i in tmp:
         #     print(i.lstrip())
     @staticmethod
-    def word_extractor(word):
+    def word_extractora(word):
         tmp = []
-        # for idx, word in enumerate(sen):
-        while word[0].isalpha() is False or word[-1].isalpha() is False:
-            if len(word) == 1 and word.isalpha() is False:
-                return []
-            elif word[0].isalpha() is not True:
+        # for idx, word in enumerate(sen):2015-12-06t12:45:50+00:00
+        while len(word) >= 1 and (word[0].isalpha() is False or word[-1].isalpha() is False):
+            # if len(word) == 1 and word.isalpha() is False:
+            #     return []
+            if word[0].isalpha() is not True:
                 word = word[1:]
             elif word[-1].isalpha() is not True:
                 word = word[:-2]
-        if word.replace('\'', 'z').replace('-', 'z').isalpha() :
+        print("in while\t" + word)
+        if len(word) >= 1 and word[0].isalpha() and word[-1].isalpha() and word.replace('\'', 'z').replace('-', 'z').isalpha() :
             return [word]
         else:
             wbuf = ''
@@ -56,6 +57,30 @@ class Data:
                     wbuf = ''
             if wbuf != '':
                 tmp.append(wbuf)
+        return tmp
+    @staticmethod
+    def word_extractor(word):
+        tmp = []
+        # for idx, word in enumerate(sen):2015-12-06t12:45:50+00:00
+        while len(word) >= 1 and (word[0].isalpha() is False or word[-1].isalpha() is False):
+            # if len(word) == 1 and word.isalpha() is False:
+            #     return []
+            if word[0].isalpha() is False:
+                word = word[1:]
+            elif word[-1].isalpha() is False:
+                word = word[:-2]
+        if len(word) < 1:
+            return []
+        elif word.count('\'') <= 1 and word.replace('\'', 'z').replace('-', 'z').isalpha() :
+            return [word]
+        else:
+            idx = 0
+            wbuf = ''
+            #have a bug when "a',"" appear
+            while word[idx].isalpha() or word[idx] == '\'' or (word[idx] == '-' and word[idx].isalpha()):
+                    idx += 1
+            tmp.append(word[0:idx - 1])
+            tmp.extend(Data.word_extractor(word[idx:]))
         return tmp
 
     def do_word_list(self):
@@ -93,7 +118,7 @@ class Data:
         pass
     def word_report(self):
         for times, voc in sorted(zip(self.word_counter, self.word_list), reverse=True):
-            print(voc + ":\t" + times.__str__())
+            print(voc + ' ' * (15 - len(voc)) + ":\t" + times.__str__())
             # self.word_counter[self.word_list.index(voc)].__str__())
 class Word:
     pass
@@ -135,7 +160,7 @@ def main():
     text = f.read()
     f.close()
     data = Data(text)
-    # print(data.word_extractor('--app\'ss,dd!!'))
+    # print(data.word_extractorb('--app\'ss,dd!!'))
     data.do_word_list()
     data.word_report()
 

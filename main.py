@@ -12,6 +12,8 @@ def printfun(it, s = '', e = '\n'):
 def main():
     parser = OptionParser(usage = 'Usage: login ......')
     parser.add_option("-f", "--file", dest="file_name", help="file that you would like to parse", action="store")
+    parser.add_option("-w", "--word", dest="word", help="word that you would like to get its meaning", action="store")
+
 
     # parser.add_option("-p", "--password", dest="user_password", help="User password for log in", action="store")
     # parser.add_option("-s", "--serial-number", dest="serial_number", help="Project's serial number", action="store")
@@ -32,17 +34,17 @@ def main():
     # print("file name\t", settings.file_name)
 
     # open file
-    with open(settings.file_name) as f:
-        for line in f:
-            print(line)
-    f = open(settings.file_name)
-    text = f.read()
-    f.close()
-    data = Data(text)
-    data.do_word_list()
-    data.word_report()
-    # test = ydict()
-    # test.search("test")
+    if options.file_name is not None:
+        f = open(settings.file_name)
+        text = f.read()
+        f.close()
+        data = Data(text)
+        data.do_word_list()
+        data.word_report()
+    if options.word is not None:
+        print("search single word!")
+        test = ydict()
+        test.search(options.word)
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,9 @@
 #!/bin/env python
 from optparse import OptionParser
 from data import Data
+from dictionary import Word
 from ydict import ydict
+
 
 import settings
 def printfun(it, s = '', e = '\n'):
@@ -13,6 +15,7 @@ def main():
     parser = OptionParser(usage = 'Usage: login ......')
     parser.add_option("-f", "--file", dest="file_name", help="file that you would like to parse", action="store")
     parser.add_option("-w", "--word", dest="word", help="word that you would like to get its meaning", action="store")
+    parser.add_option("-t", "--test", dest="test", help="testing function", action="store")
 
 
     # parser.add_option("-p", "--password", dest="user_password", help="User password for log in", action="store")
@@ -42,9 +45,11 @@ def main():
         data.do_word_list()
         data.word_report()
     if options.word is not None:
-        print("search single word!")
+        # print("search single word!")
         test = ydict()
         test.search(options.word)
-
+    if options.test is not None:
+        word = Word()
+        word.show_meaning()
 if __name__ == '__main__':
     main()

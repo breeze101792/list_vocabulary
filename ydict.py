@@ -1,6 +1,15 @@
 import urllib.request
 from html.parser import HTMLParser
 
+from dictionary import Word
+
+def ischinese(test_str):
+    for ch in test_str:
+        if ord(ch) < 0x4e00 or ord(ch) > 0x9fff:
+            return False
+    return True
+
+
 class DictParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -8,50 +17,144 @@ class DictParser(HTMLParser):
         # self.query_string = None
         self.li_counter = 0
         self.ignore_flag = False
+        self.sentenc_buf = ""
+        self.senbuf_flag = False
+        self.word = Word()
+        self.current = 0
+        self.example_flag = 0
     def handle_starttag(self, tag, attrs):
         if self.content and tag == "li" and len(attrs) == 0:
             self.li_counter += 1
         elif len(attrs) == 0:
-            pass
+            if tag == "b":
+                self.senbuf_flag = True
+                self.sentenc_buf = ""
         elif tag == "li" and attrs[0][1] == "first":
-            print("first" + self.li_counter.__str__())
+            # print("first" + self.li_counter.__str__())
             self.li_counter = 0
             self.content = True
         elif tag == "li" and attrs[0][1] == "last":
-            print("last" + self.li_counter.__str__())
+            # print("last" + self.li_counter.__str__())
             self.content = False
         elif tag == "span" and len(attrs) > 2:
             if attrs[1][1] == "iconStyle":
                 self.ignore_flag = True
-            pass
-        # if self.content and (tag == "a" or tag == "span" or tag == "b"):
-        #     print("Start tag: " + tag)
-            # for a in attrs:
-            #     print(", " + str(a))
-        # print("Encountered a start tag:", tag)
-    def handle_endtag(self, tag):
-        pass
-        # if self.content and tag == "li" and len(attrs) == 0:
-        #     self.li_counter -= 1
-        # print("Encountered an end tag :", tag)
+    # def handle_endtag(self, tag):
+    #     pass
+
     def handle_data(self, data):
-        if self.content == False or self.ignore_flag:
+        if len(data) == 1:
+            pass
+        elif self.content == False or self.ignore_flag:
             if self.ignore_flag:
                 self.ignore_flag = False
         elif self.li_counter == 0:
-            print("query word:" + data)
+            if self.word.word == "":
+                self.word.word = data
+            elif data[0][0] == 'K':
+                self.word.pronunciation = data
+                # print("query word:" + data)
+        # main content
         elif self.li_counter == 1:
-            print("content:" + data)
-        elif self.li_counter == 2:
-            print("forms:" + data)
-        elif self.li_counter == 3:
-            print("sym:" + data)
-        # if data == self.query_string:
-        #     self.content = True
-        # if self.content and (self.lasttag == "a" or self.lasttag == "span" or self.lasttag == "b"):
-        #     print("data  :", data)
-    # def set_query_str(self, query_str):
-    #     self.query_string = query_str
+            # print("content:" + len(data).__str__() + data)
+            if data[0] == 'n' and data[1] == '.':
+                # print("Noun in")
+                self.current = 1
+            elif data[0] == 'v':
+                # print("Verb in")
+                self.current = 2
+            elif data[0:2] == 'a.':# and data[1] == '.':
+                # print("adj in")
+                self.current = 3
+            elif data[0:3] == 'ad.':
+                # print("adv in")
+                self.current = 4
+            elif data[0:5] == 'prep.':
+                # print("prep in")
+                self.current = 5
+            elif self.current == 1:
+                if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                    self.word.noun.append([data, [["   ", "   "]]])
+                    self.example_flag = 0
+                #  or len(data[0]) == 1 is for . ? !
+                elif data[0:1].isalpha() or data[1:2].isalpha() or len(data[0]) == 1:
+                    if ischinese(data[0]):
+                        self.word.noun[-1][1][self.example_flag][1] += data
+                    else:
+                        self.word.noun[-1][1][self.example_flag][0] += data
+                    # self.word.noun[-1][1][self.example_flag][0] += data
+                else:
+                    self.word.noun[-1][1][self.example_flag][1] += data
+                    self.word.noun[-1][1].append(["   ", "   "])
+                    self.example_flag += 1
+            elif self.current == 2:
+                if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                    self.word.verb.append([data, [["   ", "   "]]])
+                    self.example_flag = 0
+                elif data[0:1].isalpha() or data[1:2].isalpha() or len(data[0]) == 1:
+                    if ischinese(data[0]):
+                        self.word.verb[-1][1][self.example_flag][1] += data
+                    else:
+                        self.word.verb[-1][1][self.example_flag][0] += data
+                else:
+                    self.word.verb[-1][1][self.example_flag][1] += data
+                    self.word.verb[-1][1].append(["   ", "   "])
+                    self.example_flag += 1
+            elif self.current == 3:
+                # print(data)
+                if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                    self.word.adjective.append([data, [["   ", "   "]]])
+                    self.example_flag = 0
+                elif data[0:1].isalpha() or data[1:2].isalpha() or len(data[0]) == 1:
+                    if ischinese(data[0]):
+                        self.word.adjective[-1][1][self.example_flag][1] += data
+                    else:
+                        self.word.adjective[-1][1][self.example_flag][0] += data
+                else:
+                    self.word.adjective[-1][1][self.example_flag][1] += data
+                    self.word.adjective[-1][1].append(["   ", "   "])
+                    self.example_flag += 1
+            elif self.current == 4:
+                # print(data)
+                if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                    self.word.adverb.append([data, [["   ", "   "]]])
+                    self.example_flag = 0
+                elif data[0:1].isalpha() or data[1:2].isalpha() or len(data[0]) == 1:
+                    if ischinese(data[0]):
+                        self.word.adverb[-1][1][self.example_flag][1] += data
+                    else:
+                        self.word.adverb[-1][1][self.example_flag][0] += data
+                else:
+                    self.word.adverb[-1][1][self.example_flag][1] += data
+                    self.word.adverb[-1][1].append(["   ", "   "])
+                    self.example_flag += 1
+            elif self.current == 5:
+                # print(data)
+                if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                    self.word.preposition.append([data, [["   ", "   "]]])
+                    self.example_flag = 0
+                elif data[0:1].isalpha() or data[1:2].isalpha() or len(data[0]) == 1:
+                    if ischinese(data[0]):
+                        self.word.preposition[-1][1][self.example_flag][1] += data
+                    else:
+                        self.word.preposition[-1][1][self.example_flag][0] += data
+                else:
+                    self.word.preposition[-1][1][self.example_flag][1] += data
+                    self.word.preposition[-1][1].append(["   ", "   "])
+                    self.example_flag += 1
+
+
+                pass
+        # other sections
+        # elif self.li_counter == 2:
+        #     print("forms:" + data)
+        # elif self.li_counter == 3:
+        #     print("sym:" + data)
+        # elif self.sentenc_buf:
+        #     self.sentenc_buf += data
+    def get_word(self):
+        return self.word
+
 
 class ydict:
     def __init__(self):
@@ -59,8 +162,12 @@ class ydict:
     def search(self, word):
         opener = urllib.request.FancyURLopener({})
         f = opener.open(self.url+word)
+        # print("searching address:" + self.url + word)
         content = f.read()
         dp = DictParser()
         # dp.set_query_str("test")
         dp.feed(content.decode('UTF-8'))
         # print(content.decode('UTF-8'))
+        word = dp.get_word()
+        word.show_meaning()
+        return word

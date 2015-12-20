@@ -57,7 +57,7 @@ class DictParser(HTMLParser):
         # main content
         elif self.li_counter == 1:
             # print("content:" + len(data).__str__() + data)
-            if data[0] == 'n' and data[1] == '.':
+            if data[0] == 'n' and data[1] == '.' or data[0:3] == "n [":
                 # print("Noun in")
                 self.current = 1
             elif data[0] == 'v':

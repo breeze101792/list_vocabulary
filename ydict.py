@@ -60,7 +60,7 @@ class DictParser(HTMLParser):
             if data[0] == 'n' and data[1] == '.' or data[0:3] == "n [":
                 # print("Noun in")
                 self.current = 1
-            elif data[0] == 'v':
+            elif data[0:2] == 'v.' or data[0:2] == 'vi' or data[0:2] == 'vt':
                 # print("Verb in")
                 self.current = 2
             elif data[0:2] == 'a.':# and data[1] == '.':
@@ -72,6 +72,9 @@ class DictParser(HTMLParser):
             elif data[0:5] == 'prep.':
                 # print("prep in")
                 self.current = 5
+            elif data[0:5] == 'abbr.':
+                # print("abbr in")
+                self.current = 6
             elif self.current == 1:
                 if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
                     self.word.noun.append([data, [["   ", "   "]]])
@@ -141,6 +144,19 @@ class DictParser(HTMLParser):
                 else:
                     self.word.preposition[-1][1][self.example_flag][1] += data
                     self.word.preposition[-1][1].append(["   ", "   "])
+                    self.example_flag += 1
+            elif self.current == 6:
+                if data[0][0] in ["1","2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                    self.word.abbr.append([data, [["   ", "   "]]])
+                    self.example_flag = 0
+                elif data[0:1].isalpha() or data[1:2].isalpha() or len(data[0]) == 1:
+                    if ischinese(data[0]):
+                        self.word.abbr[-1][1][self.example_flag][1] += data
+                    else:
+                        self.word.abbr[-1][1][self.example_flag][0] += data
+                else:
+                    self.word.abbr[-1][1][self.example_flag][1] += data
+                    self.word.abbr[-1][1].append(["   ", "   "])
                     self.example_flag += 1
 
 

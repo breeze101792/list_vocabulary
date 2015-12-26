@@ -9,6 +9,7 @@ class Word:
         self.adjective = []
         self.adverb = []
         self.preposition = []
+        self.abbr = []
 
         self.synonyms = []
         self.antonyms = []
@@ -17,7 +18,8 @@ class Word:
         self.forms = []
     def show_meaning(self):
         print(self.word)
-        print(self.pronunciation)
+        if len(self.pronunciation)!= 0:
+            print(self.pronunciation)
         if len(self.noun) != 0:
             print("Noun:")
             for n in self.noun:
@@ -55,6 +57,14 @@ class Word:
         if len(self.preposition) != 0:
             print("preposition:")
             for n in self.preposition:
+                print(n[0])
+                if len(n[1]) > 0:
+                    for sen in n[1]:
+                        if len(sen[0]) > 3:
+                            print(sen[0] + "\n" + sen[1])
+        if len(self.abbr) != 0:
+            print("abbreviation:")
+            for n in self.abbr:
                 print(n[0])
                 if len(n[1]) > 0:
                     for sen in n[1]:

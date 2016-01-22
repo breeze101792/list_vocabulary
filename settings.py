@@ -1,4 +1,26 @@
 # list all settings here
-working_dirtory = ""
+
+
+class Settings:
+    __setting_dict = {\
+    'name':'List Words',\
+    'version':'0.1',\
+    'file_name':'./data/i\ have\ a\ dream.txt',\
+    'mode':'interactive',\
+    'dictionary':'ydict',\
+    \
+    'word':'test',\
+    }
+    def set(self, name, value):
+        self.__setting_dict[name] = value
+    def get(self, name):
+        return self.__setting_dict[name]
+
+working_dirtory = "./"
 file_name = ""
 dictionary = ""
+
+
+# test = setting()
+# test.set('file_name', 'test')
+# print(test.get('file_name'))

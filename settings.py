@@ -8,14 +8,17 @@ class Settings:
     'file_name':'./data/i\ have\ a\ dream.txt',\
     'mode':'interactive',\
     'dictionary':'ydict',\
+    'database':'wordbank.db',\
     \
     'word':'test',\
     \
     'msg_exit':'Have a nice day!',\
     'msg_err_connection':'please check out you internet connection!',\
     }
-    def set(self, name, value):
+    @staticmethod
+    def set(name, value):
         self.__setting_dict[name] = value
+    @staticmethod
     def get(self, name):
         return self.__setting_dict[name]
 

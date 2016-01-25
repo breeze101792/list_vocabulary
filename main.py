@@ -4,7 +4,7 @@ from data import Data
 from dictionary import Word
 from ydict import ydict
 from settings import Settings
-
+from wordbank import WordBank
 
 import settings
 
@@ -20,8 +20,12 @@ def main():
                       help="file that you would like to parse", action="store")
     parser.add_option("-w", "--word", dest="word",
                       help="word that you would like to get its meaning", action="store")
+    parser.add_option("-l", "--list", dest="list",
+                      help="List words on wordbank", action="store_true")
     parser.add_option("-t", "--test", dest="test",
                       help="testing function", action="store")
+    parser.add_option("-d", "--debug", dest="debug",
+                      help="debug mode on!!", action="store_true")
 
     # parser.add_option("-p", "--password", dest="user_password", help="User password for log in", action="store")
     # parser.add_option("-s", "--serial-number", dest="serial_number", help="Project's serial number", action="store")
@@ -44,17 +48,31 @@ def main():
     if options.file_name is not None:
         psettings.set('mode', 'test')
         psettings.set('file_name', options.file_name)
-
+    if options.list is not None:
+        psettings.set('mode', 'list')
+    if options.debug:
+        psettings.set(debug, True)
+        psettings.set(database, 'debug.db')
     # print("list all vocabulary")
     # print("file name\t", settings.file_name)
+
+    # init
     my_dict = ydict()
+    wordbank = WordBank()
+    wordbank.db__init()
+    wordbank.connect()
+
+
     # open file
     try:
         if psettings.get('mode') == 'interactive':
             try:
                 while True:
                     word = input(psettings.get('name').__str__() + ">")
-                    my_dict.search(word)
+                    if my_dict.search(word):
+                        if not wordbank.update(word):
+                            wordbank.insert(word)
+                        wordbank.commit()
             except EOFError:
                 print(psettings.get('msg_exit'))
             except:
@@ -62,6 +80,10 @@ def main():
         elif psettings.get('mode') == 'word':
             # print("search single word!")
             my_dict.search(options.word)
+        elif psettings.get('mode') == 'list':
+            # print("search single word!")
+            for word in wordbank.quer_for_all_word():
+                print(word)
         elif psettings.get('mode') == 'file':
             f = open(settings.file_name)
             text = f.read()

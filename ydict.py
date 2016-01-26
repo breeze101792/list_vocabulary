@@ -185,5 +185,8 @@ class ydict:
         dp.feed(content.decode('UTF-8'))
         # print(content.decode('UTF-8'))
         word = dp.get_word()
-        word.show_meaning()
-        return word
+        # print(word.word, "word ")
+        if word.word == '無法找到符合 ':
+            return False
+        else:
+            return word

@@ -9,8 +9,8 @@ class WordBank:
     __cursor = None
     psettings = Settings()
     def db__init(self):
-        if not os.path.isfile(self.psettings.get('database')):
-            conn = sqlite3.connect(self.psettings.get('database'))
+        if not os.path.isfile(self.psettings.get('config_path') + self.psettings.get('database')):
+            conn = sqlite3.connect(self.psettings.get('config_path') + self.psettings.get('database'))
             c = conn.cursor()
             # Create table
             c.execute('''CREATE TABLE WORD
@@ -46,7 +46,7 @@ class WordBank:
             return False
         elif self.__db_connection is None:
             self.__lock()
-            self.__db_connection = sqlite3.connect(self.psettings.get('database'))
+            self.__db_connection = sqlite3.connect(self.psettings.get('config_path') + self.psettings.get('database'))
             self.__cursor = self.__db_connection.cursor()
             self.__unlock()
             return True
@@ -69,6 +69,7 @@ class WordBank:
             # print('db is locked')
             return False
         else:
+            # print('sent commit')
             self.__db_connection.commit()
             return True
     def quer_for_all_word(self):
@@ -81,9 +82,8 @@ class WordBank:
             result = self.__cursor.execute(query_str)
             self.__unlock()
             return result.fetchall()
-    def update(self, word, times = 0, familiar = 0):
+    def update(self, word, times = 1, familiar = 0):
         query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
-
         if self.__is_locked():
             # print('db is locked')
             return False
@@ -100,26 +100,28 @@ class WordBank:
             return result #.fetchone()
     def insert(self, word, familiar = 0):
         query_str = "SELECT word FROM WORD WHERE word == '%s'" % word
-
+        # print(query_str)
         if self.__is_locked():
             # print('db is locked')
             return False
         else:
             self.__lock()
             result = self.__cursor.execute(query_str).fetchone()
+            # print(result)
             if result is not None:
                 # word is already in the wordbank
                 self.__unlock()
                 return False
             else:
                 query_str = "INSERT INTO WORD (word, times, familiar) VALUES ('%s', %i, %i)" % (word, 1, familiar)
+                # print(query_str)
                 result = self.__cursor.execute(query_str).fetchone()
             self.__unlock()
             return result #.fetchone()
-test = WordBank()
-test.db__init()
-test.connect()
-test.insert('test')
-print(test.update('test', 1))
-print(test.quer_for_all_word())
-test.close()
+# test = WordBank()
+# test.db__init()
+# test.connect()
+# test.insert('test')
+# print(test.update('test', 1))
+# print(test.quer_for_all_word())
+# test.close()

@@ -5,10 +5,12 @@ class Settings:
     __setting_dict = {\
     'name':'List Words',\
     'version':'0.1',\
+    'debug':False,\
     'file_name':'./data/i\ have\ a\ dream.txt',\
     'mode':'interactive',\
     'dictionary':'ydict',\
-    'database':'wordbank.db',\
+    'config_path':'$HOME',\
+    'database':'./wordbank.db',\
     \
     'word':'test',\
     \

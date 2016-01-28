@@ -5,7 +5,7 @@ from dictionary import Word
 from ydict import ydict
 from settings import Settings
 from wordbank import WordBank
-
+import os
 import settings
 
 
@@ -51,12 +51,19 @@ def main():
     if options.list is not None:
         psettings.set('mode', 'list')
     if options.debug:
-        psettings.set(debug, True)
-        psettings.set(database, 'debug.db')
+        psettings.set('debug', True)
+        psettings.set('database', 'debug.db')
+
+
     # print("list all vocabulary")
     # print("file name\t", settings.file_name)
-
     # init
+
+    directory = os.environ['HOME']+'/'+'.list_config'+'/'
+    psettings.set('config_path', directory)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     my_dict = ydict()
     wordbank = WordBank()
     wordbank.db__init()
@@ -68,18 +75,31 @@ def main():
         if psettings.get('mode') == 'interactive':
             try:
                 while True:
-                    word = input(psettings.get('name').__str__() + ">")
-                    if my_dict.search(word):
-                        if not wordbank.update(word):
-                            wordbank.insert(word)
+                    query_word = input(psettings.get('name').__str__() + ">")
+                    word = my_dict.search(query_word)
+                    if word:
+                        word.show_meaning()
+                        if not wordbank.update(word.word):
+                            wordbank.insert(word.word)
                         wordbank.commit()
+                    else:
+                        print("can't find %s" % query_word)
             except EOFError:
                 print(psettings.get('msg_exit'))
             except:
                 raise
         elif psettings.get('mode') == 'word':
             # print("search single word!")
-            my_dict.search(options.word)
+            query_word = options.word
+            word = my_dict.search(query_word)
+            if word:
+                word.show_meaning()
+                if not wordbank.update(word.word):
+                    wordbank.insert(word.word)
+                wordbank.commit()
+            else:
+                print("can't find %s" % query_word)
+
         elif psettings.get('mode') == 'list':
             # print("search single word!")
             for word in wordbank.quer_for_all_word():

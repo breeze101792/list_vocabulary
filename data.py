@@ -24,33 +24,6 @@ class Data:
             tmp_list = tmp
         self.sentence_list = tmp_list
 
-        # for i in tmp:
-        #     print(i.lstrip())
-    @staticmethod
-    def word_extractora(word):
-        tmp = []
-        # for idx, word in enumerate(sen):2015-12-06t12:45:50+00:00
-        while len(word) >= 1 and (word[0].isalpha() is False or word[-1].isalpha() is False):
-            # if len(word) == 1 and word.isalpha() is False:
-            #     return []
-            if word[0].isalpha() is not True:
-                word = word[1:]
-            elif word[-1].isalpha() is not True:
-                word = word[:-2]
-        print("in while\t" + word)
-        if len(word) >= 1 and word[0].isalpha() and word[-1].isalpha() and word.replace('\'', 'z').replace('-', 'z').isalpha() :
-            return [word]
-        else:
-            wbuf = ''
-            for char in word:
-                if char.isalpha() or char == '\'' or char == '-':
-                    wbuf += char
-                else:
-                    tmp.append(wbuf)
-                    wbuf = ''
-            if wbuf != '':
-                tmp.append(wbuf)
-        return tmp
     @staticmethod
     def word_extractor(word):
         tmp = []
@@ -113,3 +86,5 @@ class Data:
         for times, voc in sorted(zip(self.word_counter, self.word_list), reverse=True):
             print(voc + ' ' * (15 - len(voc)) + ":\t" + times.__str__())
             # self.word_counter[self.word_list.index(voc)].__str__())
+    def get_word_list(self):
+        return tuple(self.word_list)

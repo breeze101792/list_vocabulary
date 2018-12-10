@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python3
 from optparse import OptionParser
 from data import Data
 from dictionary import Word
@@ -8,10 +8,25 @@ from wordbank import WordBank
 import os
 import settings
 
+psettings = Settings()
+
 
 def printfun(it, s='', e='\n'):
     for i in it:
         print(s + i + e)
+
+def interactive(wordbank, my_dict):
+    while True:
+        query_word = input(psettings.get('name').__str__() + ">")
+        word = my_dict.search(query_word)
+        if word:
+            word.show_meaning()
+            if not wordbank.update(word.word):
+                wordbank.insert(word.word)
+            wordbank.commit()
+        else:
+            print("can't find %s" % query_word)
+
 
 
 def main():
@@ -26,16 +41,8 @@ def main():
                       help="testing function", action="store")
     parser.add_option("-d", "--debug", dest="debug",
                       help="debug mode on!!", action="store_true")
-
-    # parser.add_option("-p", "--password", dest="user_password", help="User password for log in", action="store")
-    # parser.add_option("-s", "--serial-number", dest="serial_number", help="Project's serial number", action="store")
-    # parser.add_option("-a", dest="job_type_long", help="Job for logn term",default=False, action="store_true")
-    # parser.add_option("-w", dest="job_type_short", help="Job for short term",default=False, action="store_true")
-    # parser.add_option("-q", dest="quiet", help="Make script more quiet",default=False, action="store_true")
-    # parser.add_option("-i", "--sign-in", dest="sign_in", help="Sign in",default=False, action="store_true")
-    # parser.add_option("-o", "--sign-out", dest="sign_out", help="Sign out",default=False, action="store_true")
+                      
     (options, args) = parser.parse_args()
-    psettings = Settings()
 
     # set up settings.py!
     # mode settings
@@ -59,10 +66,8 @@ def main():
     # print("file name\t", settings.file_name)
     # init
 
-    directory = os.environ['HOME']+'/'+'.list_config'+'/'
-    psettings.set('config_path', directory)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
+    os.makedirs(psettings.get('config_path'), exist_ok=True)
 
     my_dict = ydict()
     wordbank = WordBank()
@@ -74,16 +79,7 @@ def main():
     try:
         if psettings.get('mode') == 'interactive':
             try:
-                while True:
-                    query_word = input(psettings.get('name').__str__() + ">")
-                    word = my_dict.search(query_word)
-                    if word:
-                        word.show_meaning()
-                        if not wordbank.update(word.word):
-                            wordbank.insert(word.word)
-                        wordbank.commit()
-                    else:
-                        print("can't find %s" % query_word)
+                interactive(wordbank, my_dict)
             except EOFError:
                 print(psettings.get('msg_exit'))
             except:
@@ -102,8 +98,9 @@ def main():
 
         elif psettings.get('mode') == 'list':
             # print("search single word!")
+            print('word'.ljust(20) + '\ttimes\tfamiliar')
             for word in wordbank.quer_for_all_word():
-                print(word)
+                print(word[0].ljust(20),'\t',word[1],'\t',word[2])
         elif psettings.get('mode') == 'file':
             f = open(settings.file_name)
             text = f.read()

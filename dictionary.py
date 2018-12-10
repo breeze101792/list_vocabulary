@@ -74,7 +74,10 @@ class Word:
 # return word
 
 class Dictionary:
-    pass
+    def search(self, word):
+        w = Word
+        w.word = word
+        return w
 
 class DictionaryManager:
     pass

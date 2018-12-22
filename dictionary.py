@@ -16,60 +16,36 @@ class Word:
 
         # use dictionary type to impoement
         self.forms = []
+    def __showPartMeaning(self, meaning, part="Noun"):
+        if len(meaning) != 0:
+            print(part)
+            for idx, n in enumerate(meaning):
+                # meaning
+                print("  " + idx.__str__() +  ". " + n[0].lstrip())
+                # for example scentance
+                if len(n[1]) > 0:
+                    for sen in n[1]:
+                        if len(sen[0]) > 3:
+                            print(sen[0] + "\n" + sen[1])
+
     def show_meaning(self):
         print(self.word)
+        print("------------------------------------")
         if len(self.pronunciation)!= 0:
             print(self.pronunciation)
         if len(self.noun) != 0:
-            print("Noun:")
-            for n in self.noun:
-                print(n[0])
-                if len(n[1]) > 0:
-                    for sen in n[1]:
-                        if len(sen[0]) > 3:
-                            print(sen[0] + "\n" + sen[1])
+            self.__showPartMeaning(self.noun, "n.")
         if len(self.verb) != 0:
-            print("Verb:")
-            for n in self.verb:
-                print(n[0])
-                if len(n[1]) > 0:
-                    for sen in n[1]:
-                        if len(sen[0]) > 3:
-                            print(sen[0] + "\n" + sen[1])
+            self.__showPartMeaning(self.verb, "v.")
         if len(self.adjective) != 0:
-            print("adjective:")
-            for n in self.adjective:
-                print(n[0])
-                if len(n[1]) > 0:
-                    for sen in n[1]:
-                        if len(sen[0]) > 3:
-                            print(sen[0] + "\n" + sen[1])
+            self.__showPartMeaning(self.adjective, "adj.")
         if len(self.adverb) != 0:
-            print("adverb:")
-            for n in self.adverb:
-                print(n[0])
-                if len(n[1]) > 0:
-                    for sen in n[1]:
-                        if len(sen[0]) > 3:
-                            print(sen[0] + "\n" + sen[1])
-
+            self.__showPartMeaning(self.adverb, "adv.")
 
         if len(self.preposition) != 0:
-            print("preposition:")
-            for n in self.preposition:
-                print(n[0])
-                if len(n[1]) > 0:
-                    for sen in n[1]:
-                        if len(sen[0]) > 3:
-                            print(sen[0] + "\n" + sen[1])
+            self.__showPartMeaning(self.preposition, "prep.")
         if len(self.abbr) != 0:
-            print("abbreviation:")
-            for n in self.abbr:
-                print(n[0])
-                if len(n[1]) > 0:
-                    for sen in n[1]:
-                        if len(sen[0]) > 3:
-                            print(sen[0] + "\n" + sen[1])
+            self.__showPartMeaning(self.abbr, "abbr.")
 
 # return word
 

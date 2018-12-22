@@ -2,13 +2,17 @@
 # system function
 from optparse import OptionParser
 import os
+import subprocess as sp
+import time
 # local function
-from data import Data
+from data import FileData
 from dictionary import Word
-from ydict import ydict
+#from ydict import ydict
+from local_dict import LocalDict
 from settings import Settings
 from wordbank import WordBank
 import settings
+from utils import getch
 
 psettings = Settings()
 
@@ -27,19 +31,86 @@ def interactive(wordbank, my_dict):
             wordbank.commit()
         else:
             print("can't find %s" % query_word)
-def fileCheck():
+
+def fileCheck(wordbank, my_dict):
     f = open(psettings.get('file_name'))
     text = f.read()
     f.close()
-    data = Data(text)
-    data.do_word_list()
+    file_data = FileData(text)
+    file_data.do_word_list()
+    
+    idx_tmp = 0;
+    file_word_list = file_data.get_word_list()
+    uncheck_word_list = []
+    familiar_threshold = 3
+    while idx_tmp < len(file_word_list):
+        sp.call('clear',shell=False)
+        # show word & meaning
+        dict_word = my_dict.search(file_word_list[idx_tmp])
+        # search databas
+        db_word = wordbank.get_word(file_word_list[idx_tmp])
 
-    for w in data.get_word_list():
-        print(w)
-        #my_dict.search(w)
+        if db_word and db_word[1] > familiar_threshold:
+            file_word_list.remove(file_word_list[idx_tmp])
+            idx_tmp += 1
+            continue
+
+        if dict_word:
+            dict_word.show_meaning()
+        if db_word:
+            print("The word {} is found in db.".format(file_word_list[idx_tmp]))
+            print("times: {}, familiar: {}".format(db_word[0], db_word[1]))
+        if not db_word and not dict_word:
+            uncheck_word_list.extend(file_word_list[idx_tmp])
+            file_word_list.remove(file_word_list[idx_tmp])
+            idx_tmp += 1
+            continue
+
+        '''
+        if word:
+            word.show_meaning()
+            if db_word:
+                print("times: {}, familiar: {}".format(db_word[0], db_word[1]))
+        else:
+            if db_word:
+                print("The word {} is found in db.".format(file_word_list[idx_tmp]))
+                print("times: {}, familiar: {}".format(db_word[0], db_word[1]))
+            else:
+                uncheck_word_list.extend(file_word_list[idx_tmp])
+                file_word_list.remove(file_word_list[idx_tmp])
+                continue
+        '''
+        # operations
+        while True:
+            x_tmp = getch()
+            time.sleep(0.05) 
+            if x_tmp in ("q", "Q", "x", "X"):
+                print(psettings.get('msg_exit'))
+                return
+            elif x_tmp in ("s", "S"):
+                wordbank.commit()
+                continue
+            elif x_tmp in ("n", "N"):
+                idx_tmp += 1
+                break
+            elif x_tmp in ("p", "P"):
+                idx_tmp -= 1
+                break
+            elif x_tmp in ("1", "2", "3", "4", "5"):
+                if not wordbank.update_familiar(dict_word.word, int(x_tmp)):
+                    wordbank.insert(dict_word.word, int(x_tmp))
+                idx_tmp += 1
+                break
+            elif x_tmp in ("b", "B"):
+                break
+            else:
+                print("Unknown key>" + x_tmp)
+                continue
+        print(uncheck_word_list)
+        wordbank.commit()
 
 def main():
-    parser = OptionParser(usage='Usage: login ......')
+    parser = OptionParser(usage='Usage: pydict [options] ......')
     parser.add_option("-f", "--file", dest="file_name",
                       help="file that you would like to parse", action="store")
     parser.add_option("-w", "--word", dest="word",
@@ -75,7 +146,7 @@ def main():
     psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
     os.makedirs(psettings.get('config_path'), exist_ok=True)
 
-    my_dict = ydict()
+    my_dict = LocalDict()
     wordbank = WordBank()
     wordbank.db__init()
     wordbank.connect()
@@ -101,7 +172,7 @@ def main():
             else:
                 print("can't find %s" % query_word)
         elif psettings.get('mode') == 'file':
-            fileCheck()
+            fileCheck(wordbank, my_dict)
 
         elif psettings.get('mode') == 'list':
             # print("search single word!")
@@ -115,8 +186,8 @@ def main():
             data = Data(text)
             data.do_word_list()
             data.word_report()
-    except OSError:
-        print(psettings.get('msg_err_connection'))
+    except (OSError, KeyboardInterrupt):
+        print(psettings.get('msg_exit'))
     except:
         raise
 if __name__ == '__main__':

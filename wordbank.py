@@ -82,6 +82,21 @@ class WordBank:
             result = self.__cursor.execute(query_str)
             self.__unlock()
             return result.fetchall()
+    def get_word(self, word):
+        if self.__is_locked():
+            # print('db is locked')
+            return False
+        else:
+            self.__lock()
+            query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
+            print(query_str)
+            result = self.__cursor.execute(query_str)
+            self.__unlock()
+            ret_data = result.fetchall()
+            if len(ret_data) != 0:
+                return ret_data[0]
+            else:
+                return False
     def update(self, word, times = 1, familiar = 0):
         query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
         if self.__is_locked():
@@ -118,6 +133,22 @@ class WordBank:
                 result = self.__cursor.execute(query_str).fetchone()
             self.__unlock()
             return result #.fetchone()
+    def update_familiar(self, word, familiar = 0):
+        query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
+        if self.__is_locked():
+            # print('db is locked')
+            return False
+        else:
+            self.__lock()
+            result = self.__cursor.execute(query_str).fetchone()
+            if result is None:
+                self.__unlock()
+                return False
+            else:
+                query_str = "UPDATE WORD SET familiar = %i WHERE word == '%s'" % (familiar, word)
+                result = self.__cursor.execute(query_str).fetchone()
+            self.__unlock()
+            return True
 # test = WordBank()
 # test.db__init()
 # test.connect()

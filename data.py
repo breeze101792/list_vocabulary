@@ -1,5 +1,5 @@
 
-class Data:
+class FileData:
     def __init__(self, file = None):
         self.file = file
         self.sentence_list = file
@@ -57,6 +57,8 @@ class Data:
         cidx = 0
         cbuf = 0
         while cidx < len(tmp_words):
+            if '\'' in tmp_words[cidx]:
+                tmp_words[cidx] = tmp_words[cidx].strip('\'')[0]
             if tmp_words[cidx].isalpha():
                 self.word_list.append(tmp_words[cidx])
                 cbuf = tmp_words.count(tmp_words[cidx])
@@ -87,4 +89,5 @@ class Data:
             print(voc + ' ' * (15 - len(voc)) + ":\t" + times.__str__())
             # self.word_counter[self.word_list.index(voc)].__str__())
     def get_word_list(self):
-        return tuple(self.word_list)
+        #return tuple(self.word_list)
+        return list(self.word_list)

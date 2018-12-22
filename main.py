@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
+# system function
 from optparse import OptionParser
+import os
+# local function
 from data import Data
 from dictionary import Word
 from ydict import ydict
 from settings import Settings
 from wordbank import WordBank
-import os
 import settings
 
 psettings = Settings()
-
 
 def printfun(it, s='', e='\n'):
     for i in it:
@@ -26,8 +27,16 @@ def interactive(wordbank, my_dict):
             wordbank.commit()
         else:
             print("can't find %s" % query_word)
+def fileCheck():
+    f = open(psettings.get('file_name'))
+    text = f.read()
+    f.close()
+    data = Data(text)
+    data.do_word_list()
 
-
+    for w in data.get_word_list():
+        print(w)
+        #my_dict.search(w)
 
 def main():
     parser = OptionParser(usage='Usage: login ......')
@@ -52,7 +61,7 @@ def main():
     if options.file_name is not None:
         psettings.set('mode', 'file')
         psettings.set('file_name', options.file_name)
-    if options.file_name is not None:
+    if options.test is not None:
         psettings.set('mode', 'test')
         psettings.set('file_name', options.file_name)
     if options.list is not None:
@@ -61,9 +70,6 @@ def main():
         psettings.set('debug', True)
         psettings.set('database', 'debug.db')
 
-
-    # print("list all vocabulary")
-    # print("file name\t", settings.file_name)
     # init
 
     psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
@@ -73,7 +79,6 @@ def main():
     wordbank = WordBank()
     wordbank.db__init()
     wordbank.connect()
-
 
     # open file
     try:
@@ -95,23 +100,16 @@ def main():
                 wordbank.commit()
             else:
                 print("can't find %s" % query_word)
+        elif psettings.get('mode') == 'file':
+            fileCheck()
 
         elif psettings.get('mode') == 'list':
             # print("search single word!")
             print('word'.ljust(20) + '\ttimes\tfamiliar')
             for word in wordbank.quer_for_all_word():
                 print(word[0].ljust(20),'\t',word[1],'\t',word[2])
-        elif psettings.get('mode') == 'file':
-            f = open(settings.file_name)
-            text = f.read()
-            f.close()
-            data = Data(text)
-            data.do_word_list()
-
-            for w in data.get_word_list():
-                my_dict.search(w)
         elif psettings.get('mode') == 'test':
-            f = open(settings.file_name)
+            f = open(psettings.get('file_name'))
             text = f.read()
             f.close()
             data = Data(text)

@@ -16,11 +16,14 @@ class LocalDict:
         with open(self.dict_file) as fdict:
             for each_line in fdict:
                 try:
+                    part = "other"
+
                     (word, tmp) = each_line.split(" = ", 1)
-                    (part, tmp) = tmp.split(".", 1)
+                    #(part, tmp) = tmp.split(".")
                     meanings = tmp.split(";")
                     each_word = (word, part, meanings)
                     self.dict[word] = list([part, meanings])
+                    #print(each_word, self.dict[word])
                 except ValueError:
                     print("[Err]", each_line)
     def __search(self, query_word):
@@ -38,8 +41,10 @@ class LocalDict:
             part = word.adverb
         elif result[0] == 'adj':
             part = word.adjective
+        elif result[0] == 'other':
+            part = word.other
         else:
-            print("Unknown part!!!")
+            print("Unknown part")
             return 
 
         for each_meaning in result[1]:

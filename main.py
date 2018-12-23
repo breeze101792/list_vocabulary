@@ -42,7 +42,7 @@ def fileCheck(wordbank, my_dict):
     idx_tmp = 0;
     file_word_list = file_data.get_word_list()
     uncheck_word_list = []
-    familiar_threshold = 3
+    familiar_threshold = 1
     while idx_tmp < len(file_word_list):
         sp.call('clear',shell=False)
         # show word & meaning
@@ -52,7 +52,6 @@ def fileCheck(wordbank, my_dict):
 
         if db_word and db_word[1] > familiar_threshold:
             file_word_list.remove(file_word_list[idx_tmp])
-            idx_tmp += 1
             continue
 
         print("{} +{}".format(file_word_list[idx_tmp], len(file_word_list) - idx_tmp), end="")
@@ -64,9 +63,8 @@ def fileCheck(wordbank, my_dict):
         if dict_word:
             dict_word.show_meaning()
         if not db_word and not dict_word:
-            uncheck_word_list.extend(file_word_list[idx_tmp])
+            uncheck_word_list.append(file_word_list[idx_tmp])
             file_word_list.remove(file_word_list[idx_tmp])
-            idx_tmp += 1
             continue
 
         # operations

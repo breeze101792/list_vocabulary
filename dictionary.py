@@ -10,6 +10,7 @@ class Word:
         self.adverb = []
         self.preposition = []
         self.abbr = []
+        self.other = []
 
         self.synonyms = []
         self.antonyms = []
@@ -44,6 +45,8 @@ class Word:
             self.__showPartMeaning(self.preposition, "prep.")
         if len(self.abbr) != 0:
             self.__showPartMeaning(self.abbr, "abbr.")
+        if len(self.other) != 0:
+            self.__showPartMeaning(self.other, "other")
 
 # return word
 

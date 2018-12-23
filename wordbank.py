@@ -89,7 +89,6 @@ class WordBank:
         else:
             self.__lock()
             query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
-            print(query_str)
             result = self.__cursor.execute(query_str)
             self.__unlock()
             ret_data = result.fetchall()

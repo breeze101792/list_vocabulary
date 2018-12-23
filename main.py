@@ -55,31 +55,20 @@ def fileCheck(wordbank, my_dict):
             idx_tmp += 1
             continue
 
+        print("{} +{}".format(file_word_list[idx_tmp], len(file_word_list) - idx_tmp), end="")
+        if db_word:
+            print(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
+        else:
+            print()
+        print("---------------------------------------------------")
         if dict_word:
             dict_word.show_meaning()
-        if db_word:
-            print("The word {} is found in db.".format(file_word_list[idx_tmp]))
-            print("times: {}, familiar: {}".format(db_word[0], db_word[1]))
         if not db_word and not dict_word:
             uncheck_word_list.extend(file_word_list[idx_tmp])
             file_word_list.remove(file_word_list[idx_tmp])
             idx_tmp += 1
             continue
 
-        '''
-        if word:
-            word.show_meaning()
-            if db_word:
-                print("times: {}, familiar: {}".format(db_word[0], db_word[1]))
-        else:
-            if db_word:
-                print("The word {} is found in db.".format(file_word_list[idx_tmp]))
-                print("times: {}, familiar: {}".format(db_word[0], db_word[1]))
-            else:
-                uncheck_word_list.extend(file_word_list[idx_tmp])
-                file_word_list.remove(file_word_list[idx_tmp])
-                continue
-        '''
         # operations
         while True:
             x_tmp = getch()
@@ -88,6 +77,7 @@ def fileCheck(wordbank, my_dict):
                 print(psettings.get('msg_exit'))
                 return
             elif x_tmp in ("s", "S"):
+                print("Save to database")
                 wordbank.commit()
                 continue
             elif x_tmp in ("n", "N"):
@@ -99,6 +89,7 @@ def fileCheck(wordbank, my_dict):
             elif x_tmp in ("1", "2", "3", "4", "5"):
                 if not wordbank.update_familiar(dict_word.word, int(x_tmp)):
                     wordbank.insert(dict_word.word, int(x_tmp))
+                wordbank.commit()
                 idx_tmp += 1
                 break
             elif x_tmp in ("b", "B"):
@@ -106,8 +97,7 @@ def fileCheck(wordbank, my_dict):
             else:
                 print("Unknown key>" + x_tmp)
                 continue
-        print(uncheck_word_list)
-        wordbank.commit()
+    print(uncheck_word_list)
 
 def main():
     parser = OptionParser(usage='Usage: pydict [options] ......')

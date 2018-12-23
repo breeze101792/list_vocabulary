@@ -29,8 +29,6 @@ class Word:
                             print(sen[0] + "\n" + sen[1])
 
     def show_meaning(self):
-        print(self.word)
-        print("------------------------------------")
         if len(self.pronunciation)!= 0:
             print(self.pronunciation)
         if len(self.noun) != 0:

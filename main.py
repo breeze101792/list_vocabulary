@@ -8,7 +8,8 @@ import time
 from data import FileData
 from dictionary import Word
 #from ydict import ydict
-from local_dict import LocalDict
+#from local_dict import LocalDict
+from ecdict import *
 from settings import Settings
 from wordbank import WordBank
 import settings
@@ -134,7 +135,7 @@ def main():
     psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
     os.makedirs(psettings.get('config_path'), exist_ok=True)
 
-    my_dict = LocalDict()
+    my_dict = ECDict()
     wordbank = WordBank()
     wordbank.db__init()
     wordbank.connect()

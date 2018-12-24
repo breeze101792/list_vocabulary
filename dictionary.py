@@ -22,7 +22,8 @@ class Word:
             print(part)
             for idx, n in enumerate(meaning):
                 # meaning
-                print("  " + idx.__str__() +  ". " + n[0].lstrip())
+                # print("  " + idx.__str__() +  ". " + n[0].lstrip())
+                print("  " + n[0].lstrip())
                 # for example scentance
                 if len(n[1]) > 0:
                     for sen in n[1]:
@@ -31,7 +32,7 @@ class Word:
 
     def show_meaning(self):
         if len(self.pronunciation)!= 0:
-            print(self.pronunciation)
+            print("[" + self.pronunciation + "]")
         if len(self.noun) != 0:
             self.__showPartMeaning(self.noun, "n.")
         if len(self.verb) != 0:

@@ -135,7 +135,7 @@ def main():
     psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
     os.makedirs(psettings.get('config_path'), exist_ok=True)
 
-    my_dict = ECDict()
+    my_dict = SECDict()
     wordbank = WordBank()
     wordbank.db__init()
     wordbank.connect()

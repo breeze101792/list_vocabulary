@@ -1,3 +1,5 @@
+
+# private
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
 screen."""
@@ -31,5 +33,8 @@ class _GetchWindows:
     def __call__(self):
         import msvcrt
         return msvcrt.getch()
-
+# public api
+def colorPrint(print_string, color = "w", end="\n"):
+    print(print_string, end=end)
 getch = _Getch()
+

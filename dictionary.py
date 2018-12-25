@@ -1,4 +1,34 @@
-
+from utils import *
+class SWord:
+    def __init__(self, word = "None"):
+        self.word = word 
+        self.phonetic = ""
+        # ["", "", ...]
+        self.definition = []
+        self.translation = []
+        
+        self.form = []
+        
+        self.__cfg_indentation = "  "
+        # unuse
+        self.pos = []
+    def __showDef(self, definition):
+        for each_def in definition:
+            colorPrint(self.__cfg_indentation + each_def)
+    def display(self):
+        if len(self.phonetic) != 0:
+            colorPrint("[{}]".format(self.word))
+        if len(self.form) != 0:
+            colorPrint("Forms: " + self.form)
+        if len(self.definition) != 0:
+            colorPrint("Def.:")
+            self.__showDef(self.definition)
+        if len(self.translation) != 0:
+            colorPrint("Transl.:")
+            self.__showDef(self.translation)
+    def show_meaning(self):
+        self.display()
+        
 class Word:
     def __init__(self):
         self.word = ""
@@ -52,10 +82,12 @@ class Word:
 # return word
 
 class Dictionary:
-    def search(self, word):
+    def search(self, query_word):
         w = Word
         w.word = word
         return w
+    def fuzzySearch(self, query_word):
+        pass
 
 class DictionaryManager:
     pass

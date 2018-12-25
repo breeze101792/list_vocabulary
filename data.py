@@ -34,7 +34,7 @@ class FileData:
             if word[0].isalpha() is False:
                 word = word[1:]
             elif word[-1].isalpha() is False:
-                word = word[:-2]
+                word = word[:-1]
         if len(word) < 1:
             return []
         elif word.count('\'') <= 1 and word.replace('\'', 'z').replace('-', 'z').isalpha() :
@@ -57,6 +57,7 @@ class FileData:
         cidx = 0
         cbuf = 0
         while cidx < len(tmp_words):
+            # remove the word like "i'm"
             if '\'' in tmp_words[cidx]:
                 tmp_words[cidx] = tmp_words[cidx].strip('\'')[0]
             if tmp_words[cidx].isalpha():

@@ -36,5 +36,8 @@ class _GetchWindows:
 # public api
 def colorPrint(print_string, color = "w", end="\n"):
     print(print_string, end=end)
+def printfun(it, s='', e='\n'):
+    for i in it:
+        print(s + i + e)
 getch = _Getch()
 

@@ -87,8 +87,26 @@ def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3]):
     if len(uncheck_word_list) != 0:
         print("Uncheck list: ", uncheck_word_list)
     return uncheck_word_list
+def fileDictExport(file_word_list, wordbank, my_dict, word_level):
+    word_count = 0
+    for each_word in file_word_list:
+        db_word_info = wordbank.get_word(each_word)
+        if db_word_info is False:
+            word_familiar = 0
+        else:
+            word_familiar = db_word_info[1]
+        
+        if word_familiar in word_level:
+            ret = my_dict.search(each_word)
+            if ret:
+                print(ret.word)
+                ret.show_meaning()
+                print("-" * 32)
+                word_count += 1
+    print("Word count: {}".format(word_count))
 
-def fileCheck(wordbank, my_dict, word_level = [1,2,3]):
+
+def fileCheck(wordbank, my_dict, word_level = [1,2,3], cfg_output = False):
     f = open(psettings.get('file_name'))
     text = f.read()
     f.close()
@@ -97,7 +115,10 @@ def fileCheck(wordbank, my_dict, word_level = [1,2,3]):
     
     idx_tmp = 0;
     file_word_list = file_data.get_word_list()
-    uncheck_word_list = uiViewList(file_word_list, wordbank, my_dict, word_level)
+    if cfg_output is True:
+        fileDictExport(file_word_list, wordbank, my_dict, word_level)
+    else:
+        uncheck_word_list = uiViewList(file_word_list, wordbank, my_dict, word_level)
 
 def main():
     parser = OptionParser(usage='Usage: pydict [options] ......')

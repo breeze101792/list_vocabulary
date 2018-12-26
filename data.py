@@ -46,11 +46,12 @@ class FileData:
             while word[idx].isalpha() or word[idx] == '\'' or (word[idx] == '-' and word[idx].isalpha()):
                     idx += 1
             tmp.append(word[0:idx - 1])
-            tmp.extend(Data.word_extractor(word[idx:]))
+            tmp.extend(FileData.word_extractor(word[idx:]))
         return tmp
 
     def do_word_list(self):
-        tmp_words = self.file.replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').lower().split()
+        # TODO need to find another way to remvoe those symbol except '
+        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').lower().split()
         tmp_words = sorted(tmp_words)
         self.word_list = []
         self.word_counter =  []

@@ -12,4 +12,16 @@ function dict_init()
     }
     popd
 }
-dict_init
+function generate_exc()
+{
+    local exc_file='pydict'
+    local cpath=`pwd`
+    echo "#!/bin/bash" > $exc_file
+    echo "python3 $cpath/main.py $@" > $exc_file
+    chmod u+x $exc_file
+}
+if [ ! -f dict.db ]
+then
+    dict_init
+fi
+generate_exc

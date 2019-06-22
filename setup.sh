@@ -7,7 +7,8 @@ function dict_init()
     pushd $work_tmp
     {
         7z x $dict_file
-        python $cpath/ecdict.py dict.db stardict.csv
+        iconv -f utf8 -t gb2312 stardict.csv | iconv -f gb2312 -t big5 | iconv -f big5 -t utf8 > stardict_t.csv
+        python $cpath/ecdict.py dict.db stardict_t.csv
         cp dict.db $cpath
     }
     popd
@@ -17,7 +18,7 @@ function generate_exc()
     local exc_file='pydict'
     local cpath=`pwd`
     echo "#!/bin/bash" > $exc_file
-    echo "python3 $cpath/main.py $@" > $exc_file
+    echo "python3 $cpath/main.py \$@" >> $exc_file
     chmod u+x $exc_file
 }
 if [ ! -f dict.db ]

@@ -51,13 +51,14 @@ class FileData:
 
     def do_word_list(self):
         # TODO need to find another way to remvoe those symbol except '
-        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').lower().split()
+        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\'', ' ').lower().split()
         tmp_words = sorted(tmp_words)
         self.word_list = []
         self.word_counter =  []
         cidx = 0
         cbuf = 0
         while cidx < len(tmp_words):
+            # print(tmp_words[cidx])
             # remove the word like "i'm"
             if '\'' in tmp_words[cidx]:
                 tmp_words[cidx] = tmp_words[cidx].strip('\'')[0]

@@ -29,7 +29,7 @@ def interactive(wordbank, my_dict):
         else:
             print("can't find %s" % query_word)
 
-def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3]):
+def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_data=None):
     idx_tmp = 0;
     uncheck_word_list = []
     while idx_tmp < len(file_word_list):
@@ -43,7 +43,10 @@ def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3]):
             file_word_list.remove(file_word_list[idx_tmp])
             continue
 
-        print("{} +{}".format(file_word_list[idx_tmp], len(file_word_list) - idx_tmp), end="")
+        if file_data == None:
+            print("{} +{}".format(file_word_list[idx_tmp], len(file_word_list) - idx_tmp), end="")
+        else:
+            print("{} +{}/{}".format(file_word_list[idx_tmp], len(file_word_list) - idx_tmp, file_data.get_word_freq(file_word_list[idx_tmp])), end="")
         if db_word:
             print(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
         else:
@@ -118,7 +121,7 @@ def fileCheck(wordbank, my_dict, word_level = [1,2,3], cfg_output = False):
     if cfg_output is True:
         fileDictExport(file_word_list, wordbank, my_dict, word_level)
     else:
-        uncheck_word_list = uiViewList(file_word_list, wordbank, my_dict, word_level)
+        uncheck_word_list = uiViewList(file_word_list, wordbank, my_dict, word_level, file_data)
 
 def main():
     parser = OptionParser(usage='Usage: pydict [options] ......')
@@ -159,7 +162,7 @@ def main():
     if options.word_level is not None:
         word_level = [int(each_level) for each_level in options.word_level.split(',')]
     else:
-        word_level = [1]
+        word_level = [0,1,2,3,4,5]
 
     # init
     psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')

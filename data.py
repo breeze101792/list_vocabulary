@@ -37,7 +37,7 @@ class FileData:
                 word = word[:-1]
         if len(word) < 1:
             return []
-        elif word.count('\'') <= 1 and word.replace('\'', 'z').replace('-', 'z').isalpha() :
+        elif word.count('\'') <= 1 and word.replace('\'', 'z').replace('-', 'z').isalpha() and word != '\'' and word != '-':
             return [word]
         else:
             idx = 0
@@ -51,49 +51,41 @@ class FileData:
 
     def do_word_list(self):
         # TODO need to find another way to remvoe those symbol except '
-        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').lower().split()
-        tmp_words = sorted(tmp_words)
+        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\"', ' ').lower().split()
+        processed_word_list = []
         self.word_list = []
         self.word_counter =  []
         cidx = 0
-        cbuf = 0
-        while cidx < len(tmp_words):
-            # print(tmp_words[cidx])
-            # remove the word like "i'm"
-            if '\'' in tmp_words[cidx] and tmp_words[cidx] != '\'':
-                tmp_words[cidx] = tmp_words[cidx].strip('\'')[0]
-            if len(tmp_words[cidx]) == 2:
-                # Skip the word if the length less then 2
-                cidx += cbuf
-                continue
-            if tmp_words[cidx].isalpha():
-                self.word_list.append(tmp_words[cidx])
-                cbuf = tmp_words.count(tmp_words[cidx])
-                self.word_counter.append(cbuf)
-            else:
-                cbuf = tmp_words.count(tmp_words[cidx])
-                for each_word in self.word_extractor(tmp_words[cidx]):
-                    if each_word in self.word_list:
-                        self.word_counter[self.word_list.index(each_word)] += cbuf
-                    else:
-                        self.word_list.append(each_word)
-                        self.word_counter.append(cbuf)
-            cidx += cbuf
-
-        # self.words = dict({key: val for key, val in zip(self.word_list, self.word_counter)})
-        # printfun(sorted(self.words))
-        # for voc, times in zip(self.word_list, self.word_counter):
-        #     print(voc + " : " + times.__str__())
-
+        for each_word in tmp_words:
+            processed_word_list.extend(self.word_extractor(each_word))
+        word_list_sorted = sorted(processed_word_list)
+        while cidx < len(word_list_sorted):
+            if word_list_sorted[cidx].isalpha():
+                if len(word_list_sorted[cidx]) <= 2:
+                    # Skip the word if the length less then 2
+                    cidx += 1
+                    continue
+                if word_list_sorted[cidx] not in self.word_list:
+                    self.word_list.append(word_list_sorted[cidx])
+                    self.word_counter.append(1)
+                else:
+                    self.word_counter[self.word_list.index(word_list_sorted[cidx])] += 1
+            cidx += 1
+        # self.word_report()
+        # getch()
     def do_list(self):
         self.sentence_list = self.file.splitlines()
         for line in self.sentence_list:
             print(line + "\n")
         pass
     def word_report(self):
-        for times, voc in sorted(zip(self.word_counter, self.word_list), reverse=True):
-            print(voc + ' ' * (15 - len(voc)) + ":\t" + times.__str__())
-            # self.word_counter[self.word_list.index(voc)].__str__())
+        for voc, times in zip(self.word_list, self.word_counter):
+            print(times.__str__().zfill(4), "\t: " + voc)
     def get_word_list(self):
         #return tuple(self.word_list)
         return list(self.word_list)
+    def get_freq_list(self):
+        #return tuple(self.word_list)
+        return list(self.word_counter)
+    def get_word_freq(self, word):
+        return self.word_counter[self.word_list.index(word)]

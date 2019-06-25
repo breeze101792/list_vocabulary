@@ -51,7 +51,7 @@ class FileData:
 
     def do_word_list(self):
         # TODO need to find another way to remvoe those symbol except '
-        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\'', ' ').lower().split()
+        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').lower().split()
         tmp_words = sorted(tmp_words)
         self.word_list = []
         self.word_counter =  []
@@ -60,13 +60,16 @@ class FileData:
         while cidx < len(tmp_words):
             # print(tmp_words[cidx])
             # remove the word like "i'm"
-            if '\'' in tmp_words[cidx]:
+            if '\'' in tmp_words[cidx] and tmp_words[cidx] != '\'':
                 tmp_words[cidx] = tmp_words[cidx].strip('\'')[0]
+            if len(tmp_words[cidx]) == 2:
+                # Skip the word if the length less then 2
+                cidx += cbuf
+                continue
             if tmp_words[cidx].isalpha():
                 self.word_list.append(tmp_words[cidx])
                 cbuf = tmp_words.count(tmp_words[cidx])
                 self.word_counter.append(cbuf)
-                cidx += cbuf;
             else:
                 cbuf = tmp_words.count(tmp_words[cidx])
                 for each_word in self.word_extractor(tmp_words[cidx]):
@@ -75,7 +78,7 @@ class FileData:
                     else:
                         self.word_list.append(each_word)
                         self.word_counter.append(cbuf)
-                cidx += cbuf;
+            cidx += cbuf
 
         # self.words = dict({key: val for key, val in zip(self.word_list, self.word_counter)})
         # printfun(sorted(self.words))

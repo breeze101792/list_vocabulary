@@ -57,6 +57,7 @@ class FileData:
         self.word_counter =  []
         cidx = 0
         for each_word in tmp_words:
+            # return a list of words
             processed_word_list.extend(self.word_extractor(each_word))
         word_list_sorted = sorted(processed_word_list)
         while cidx < len(word_list_sorted):

@@ -32,12 +32,15 @@ def interactive(wordbank, my_dict):
 def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_data=None):
     idx_tmp = 0;
     uncheck_word_list = []
+    level_word_list=[0,0,0,0,0,0]
     while idx_tmp < len(file_word_list):
         sp.call('clear',shell=False)
         # show word & meaning
         dict_word = my_dict.search(file_word_list[idx_tmp])
         # search databas
         db_word = wordbank.get_word(file_word_list[idx_tmp])
+        if db_word:
+            level_word_list[int(db_word[1])] += 1
 
         if db_word and db_word[1] not in word_level:
             file_word_list.remove(file_word_list[idx_tmp])
@@ -89,6 +92,8 @@ def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_dat
                 continue
     if len(uncheck_word_list) != 0:
         print("Uncheck list: ", uncheck_word_list)
+    print(level_word_list)
+
     return uncheck_word_list
 def fileDictExport(file_word_list, wordbank, my_dict, word_level):
     word_count = 0

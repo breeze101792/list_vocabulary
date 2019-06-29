@@ -8,6 +8,7 @@ class Settings:
     'debug':False,\
     'file_name':'./data/i\ have\ a\ dream.txt',\
     'mode':'interactive',\
+    'word_freq': 0,\
     'dictionary':'ydict',\
     'config_path':'$HOME',\
     'database':'./wordbank.db',\

@@ -27,6 +27,8 @@ class FileData:
     @staticmethod
     def word_extractor(word):
         tmp = []
+        if word.isalpha() is True:
+            return [word]
         # for idx, word in enumerate(sen):2015-12-06t12:45:50+00:00
         while len(word) >= 1 and (word[0].isalpha() is False or word[-1].isalpha() is False):
             # if len(word) == 1 and word.isalpha() is False:
@@ -51,7 +53,7 @@ class FileData:
 
     def do_word_list(self):
         # TODO need to find another way to remvoe those symbol except '
-        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\"', ' ').lower().split()
+        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\"', ' ').replace('n\'', ' ').replace('\'', ' ').lower().split()
         processed_word_list = []
         self.word_list = []
         self.word_counter =  []

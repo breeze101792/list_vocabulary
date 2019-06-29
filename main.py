@@ -29,7 +29,7 @@ def interactive(wordbank, my_dict):
         else:
             print("can't find %s" % query_word)
 
-def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_data=None):
+def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_data=None, word_freq = 0):
     idx_tmp = 0;
     uncheck_word_list = []
     level_word_list=[0,0,0,0,0,0]
@@ -45,6 +45,13 @@ def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_dat
         if db_word and db_word[1] not in word_level:
             file_word_list.remove(file_word_list[idx_tmp])
             continue
+        if not db_word and not dict_word:
+            uncheck_word_list.append(file_word_list[idx_tmp])
+            file_word_list.remove(file_word_list[idx_tmp])
+            continue
+        if file_data.get_word_freq(file_word_list[idx_tmp]) <= word_freq:
+            idx_tmp += 1
+            continue
 
         if file_data == None:
             print("{} +{}".format(file_word_list[idx_tmp], len(file_word_list) - idx_tmp), end="")
@@ -57,10 +64,6 @@ def uiViewList(file_word_list, wordbank, my_dict, word_level = [1,2,3], file_dat
         print("---------------------------------------------------")
         if dict_word:
             dict_word.show_meaning()
-        if not db_word and not dict_word:
-            uncheck_word_list.append(file_word_list[idx_tmp])
-            file_word_list.remove(file_word_list[idx_tmp])
-            continue
 
         # operations
         while True:
@@ -114,7 +117,7 @@ def fileDictExport(file_word_list, wordbank, my_dict, word_level):
     print("Word count: {}".format(word_count))
 
 
-def fileCheck(wordbank, my_dict, word_level = [1,2,3], cfg_output = False):
+def fileCheck(wordbank, my_dict, word_level = [1,2,3], cfg_output = False, word_freq = 0):
     f = open(psettings.get('file_name'))
     text = f.read()
     f.close()
@@ -126,12 +129,14 @@ def fileCheck(wordbank, my_dict, word_level = [1,2,3], cfg_output = False):
     if cfg_output is True:
         fileDictExport(file_word_list, wordbank, my_dict, word_level)
     else:
-        uncheck_word_list = uiViewList(file_word_list, wordbank, my_dict, word_level, file_data)
+        uncheck_word_list = uiViewList(file_word_list, wordbank, my_dict, word_level, file_data, word_freq=int(word_freq))
 
 def main():
     parser = OptionParser(usage='Usage: pydict [options] ......')
     parser.add_option("-f", "--file", dest="file_name",
                     help="file that you would like to parse", action="store")
+    parser.add_option("-F", "--Frequency", dest="word_freq",
+                    help="Filter for word frequency", default=0, action="store")
     parser.add_option("-w", "--word", dest="word",
                     help="word that you would like to get its meaning", action="store")
     parser.add_option("-l", "--list", dest="list",
@@ -170,6 +175,7 @@ def main():
         word_level = [0,1,2,3,4,5]
 
     # init
+    psettings.set('word_freq', options.word_freq)
     psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
     os.makedirs(psettings.get('config_path'), exist_ok=True)
 
@@ -199,7 +205,7 @@ def main():
             else:
                 print("can't find %s" % query_word)
         elif psettings.get('mode') == 'file':
-            fileCheck(wordbank, my_dict, word_level)
+            fileCheck(wordbank, my_dict, word_level, word_freq=psettings.get('word_freq'))
         elif psettings.get('mode') == 'list':
             word_list = [each_word[0] for each_word in wordbank.quer_for_all_word()]
             uiViewList(word_list, wordbank, my_dict, word_level)

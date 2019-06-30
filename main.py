@@ -42,7 +42,7 @@ def main():
     # mode settings
     if options.word is not None:
         psettings.set('mode', EUIMode.WORD)
-        psettings.set('word', options.word)
+        word_list = list([options.word])
     elif options.file_name is not None:
         psettings.set('mode', EUIMode.FILE)
         psettings.set('file_name', options.file_name)
@@ -81,8 +81,13 @@ def main():
         cli.set_filter(level = word_level, freq = word_freq)
         if psettings.get('mode') == EUIMode.WORD:
             cli.set_mode(EUIMode.WORD)
+            cli.set_list(word_list)
         elif psettings.get('mode') == EUIMode.INTERCTIVE:
             cli.set_mode(EUIMode.INTERCTIVE)
+        elif psettings.get('mode') == EUIMode.LIST:
+            cli.set_mode(EUIMode.LIST)
+            word_list = [ each_word[0] for each_word in wordbank.quer_for_all_word()]
+            cli.set_list(word_list)
         elif psettings.get('mode') == EUIMode.FILE:
             cli.set_mode(EUIMode.FILE)
             cli.read_file()

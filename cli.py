@@ -44,6 +44,8 @@ class CommandLineInterface:
 
     def set_mode(self, mode):
         self.__mode = mode
+    def set_list(self, word_list):
+        self.__word_list = word_list
     def read_file(self):
         f = open(self.settings.get('file_name'))
         text = f.read()
@@ -63,10 +65,9 @@ class CommandLineInterface:
         self.ui_print_line("End of init key thread")
     def __filter(self, query_word, db_word):
         filter_flag = True
-        if self.__file_data.get_word_freq(query_word) < self.__filter_freq:
+        if self.__file_data != None and self.__file_data.get_word_freq(query_word) < self.__filter_freq:
             filter_flag = filter_flag and False
-            print("freq:", filter_flag)
-        print(query_word, db_word,db_word != False)
+        dbg_debug(query_word, db_word,db_word != False)
         if db_word != False:
             if db_word[1] not in self.__filter_level:
                 filter_flag = filter_flag and False
@@ -83,8 +84,8 @@ class CommandLineInterface:
         next_word = ""
         # this function handle word list
         if mode == EUIMode.INTERCTIVE:
-            next_word = input(psettings.get('name').__str__() + "> ").strip()
-        elif mode == EUIMode.FILE:
+            next_word = input(self.settings.get('name').__str__() + "> ").strip()
+        elif mode == EUIMode.FILE or mode == EUIMode.LIST or mode == EUIMode.WORD:
             if self.__list_idx >= len(self.__word_list) or self.__list_idx < 0:
                 return False
             else:
@@ -125,12 +126,14 @@ class CommandLineInterface:
                 self.__flag_running == False
                 break
             dict_word = self.__search_word(query_word)
-            if dict_word == False:
+            if dict_word == False and (self.__mode == EUIMode.FILE or self.__mode == EUIMode.LIST):
                 self.__word_list.remove(self.__word_list[self.__list_idx])
                 continue
+            if self.__mode == EUIMode.WORD:
+                return
 
             # operations
-            while self.__flag_running == True:
+            while self.__flag_running == True and self.__mode != EUIMode.WORD:
                 self.ui_print_line("Enter a key(x/Exit, n/Next, P/Previous, s/Searching):")
                 key_press = getch()
                 time.sleep(self.__key_delay)

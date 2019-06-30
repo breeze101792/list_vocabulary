@@ -91,7 +91,7 @@ class CommandLineInterface:
             else:
                 next_word = self.__word_list[self.__list_idx]
         return next_word
-    def __search_word(self, query_word):
+    def __search_word(self, query_word, filter_flag = True):
         # searching in dictionary
         dict_word = self.dictionary.search(query_word)
         if dict_word == False:
@@ -99,13 +99,13 @@ class CommandLineInterface:
             return False
         # searching in databas
         db_word = self.wordbank.get_word(query_word)
-        if self.__filter(query_word, db_word) == False:
+        if filter_flag and self.__filter(query_word, db_word) == False:
             dbg_info("The word has been blocked by filter")
             return False
 
         # show information
         self.ui_print("{} ".format(query_word))
-        if self.__file_data is not None:
+        if self.__file_data is not None and self.__file_data.get_word_freq(query_word):
             self.ui_print(" +{}/{}".format(len(self.__word_list) - self.__list_idx, self.__file_data.get_word_freq(query_word)))
         if db_word:
             self.ui_print_line(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
@@ -148,7 +148,7 @@ class CommandLineInterface:
                     if self.__mode == EUIMode.INTERCTIVE:
                         break
                     tmp_word = self.__get_word(EUIMode.INTERCTIVE)
-                    self.__search_word(tmp_word)
+                    self.__search_word(tmp_word, filter_flag = False)
                     continue
                 elif key_press in ("n", "N"):
                     self.__list_idx += 1

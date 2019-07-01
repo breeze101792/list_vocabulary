@@ -35,6 +35,9 @@ class CommandLineInterface:
         self.__file_data = None
         self.__filter_level = [0,1,2,3,4,5]
         self.__filter_freq = 0
+        # counter for all levels, 0 for not in the db
+        self.__statistic_list = [0,0,0,0,0,0]
+        self.__statistic_flag = False
 
     def set_filter(self, level = None, freq = None):
         if level is not None:
@@ -109,8 +112,10 @@ class CommandLineInterface:
             self.ui_print(" +{}/{}".format(len(self.__word_list) - self.__list_idx, self.__file_data.get_word_freq(query_word)))
         if db_word:
             self.ui_print_line(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
+            self.__statistic_list[int(db_word[1])] += 1
         else:
             self.ui_print_line()
+            self.__statistic_list[0] += 1
         self.ui_print_line("---------------------------------------------------")
         if dict_word:
             dict_word.show_meaning()
@@ -131,6 +136,9 @@ class CommandLineInterface:
                 continue
             if self.__mode == EUIMode.WORD:
                 return
+            if self.__statistic_flag:
+                self.__list_idx += 1
+                continue
 
             # operations
             while self.__flag_running == True and self.__mode != EUIMode.WORD:
@@ -173,6 +181,7 @@ class CommandLineInterface:
                 else:
                     print("Unknown key>" + key_press)
                     continue
+        self.ui_print_line("Statistic: ", self.__statistic_list)
     def key_press(self, test):
         while True:
             x_tmp = getch()

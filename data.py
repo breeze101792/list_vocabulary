@@ -91,6 +91,6 @@ class FileData:
         #return tuple(self.word_list)
         return list(self.word_counter)
     def get_word_freq(self, word):
-        if self.word_list.index(word):
+        if word in self.word_list:
             return self.word_counter[self.word_list.index(word)]
         return False

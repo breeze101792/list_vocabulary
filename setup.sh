@@ -9,7 +9,7 @@ function dict_init()
     {
         7z x $dict_file
         iconv -f utf8 -t gb2312 stardict.csv | iconv -f gb2312 -t big5 | iconv -f big5 -t utf8 > stardict_t.csv
-        python3 $cpath/ecdict.py dict.db stardict_t.csv
+        python3 $cpath/ecdict.py dict.db stardict*csv
         cp dict.db $cpath
     }
     popd

@@ -8,8 +8,8 @@ function dict_init()
     pushd $work_tmp
     {
         7z x $dict_file
-        iconv -f utf8 -t gb2312 stardict.csv | iconv -f gb2312 -t big5 | iconv -f big5 -t utf8 > stardict_t.csv
-        python3 $cpath/ecdict.py dict.db stardict*csv
+        iconv -sc -f utf8 -t gb2312 stardict.csv | iconv -sc -f gb2312 -t big5 | iconv -sc -f big5 -t utf8 > stardict_t.csv
+        python3 $cpath/ecdict.py dict.db stardict_t.csv
         cp dict.db $cpath
     }
     popd
@@ -31,6 +31,18 @@ function fHelp()
     echo "Note."
     echo "      Step 1. Do submodule init/update"
     echo "      Step 2. Install p7zip-full, iconv, pyton3."
+}
+function fPKGCheck()
+{
+    if ! command -v iconv
+    then
+        echo "Iconv not found, please install it"
+    fi
+
+    if ! command -v 7z
+    then
+        echo "p7zip-full not found, please install it"
+    fi
 }
 
 function setup()

@@ -27,6 +27,7 @@ function fHelp()
 {
     echo "Setup Usage"
     printf "    %s%s%s\n" "-d|--dict" "->" "Setup dict db"
+    printf "    %s%s%s\n" "-e|--exec" "->" "generate exec file"
     printf "    %s%s%s\n" "-h|--help" "->" "Help me"
     echo "Note."
     echo "      Step 1. Do submodule init/update"
@@ -52,6 +53,8 @@ function setup()
         case $1 in
             -d|--dict)
                 dict_init
+                ;;
+            -e|--exec)
                 generate_exc
                 ;;
             -h|--help)

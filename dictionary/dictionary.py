@@ -1,4 +1,5 @@
-from utils import *
+# from util import *
+from utility.debug import *
 class SWord:
     def __init__(self, word = "None"):
         self.word = word 
@@ -14,17 +15,17 @@ class SWord:
         self.pos = []
     def __showDef(self, definition):
         for each_def in definition:
-            colorPrint(self.__cfg_indentation + each_def)
+            print(self.__cfg_indentation + each_def)
     def display(self):
         if len(self.phonetic) != 0:
-            colorPrint("[{}]".format(self.word))
+            print("[{}]".format(self.word))
         if len(self.form) != 0:
-            colorPrint("Forms: " + self.form)
+            print("Forms: " + self.form)
         if len(self.definition) != 0:
-            colorPrint("Def.:")
+            print("Def.:")
             self.__showDef(self.definition)
         if len(self.translation) != 0:
-            colorPrint("Transl.:")
+            print("Transl.:")
             self.__showDef(self.translation)
     def show_meaning(self):
         self.display()

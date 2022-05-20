@@ -1,3 +1,6 @@
 [submodule "third_party/ecdict"]
 	path = third_party/ecdict
 	url = https://github.com/skywind3000/ECDICT.git
+[submodule "utility"]
+	path = utility
+	url = git@bitbucket.org:shaowu/pyutility.git

@@ -1,7 +1,7 @@
 import urllib.request
 from html.parser import HTMLParser
 
-from dictionary import Word
+from dictionary.dictionary import Word, SWord
 
 def ischinese(test_str):
     for ch in test_str:

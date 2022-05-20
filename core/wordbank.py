@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from settings import Settings
+from core.settings import Settings
 
 
 class WordBank:

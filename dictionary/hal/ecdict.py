@@ -1,6 +1,6 @@
-from dictionary import Word, SWord
+from dictionary.dictionary import Word, SWord
 from third_party.ecdict.stardict import *
-
+from utility.debug import *
 
 
 def ischinese(test_str):
@@ -12,6 +12,7 @@ def ischinese(test_str):
 class SECDict:
     def __init__(self, dict_db="dict.db"):
         self.dict_db = os.path.join(os.path.dirname(__file__), dict_db)
+        dbg_info('Open dictionary: ', self.dict_db)
         self.start_dict = StarDict(self.dict_db, False)
     def __search(self, query_word):
         result = self.start_dict.query(query_word)

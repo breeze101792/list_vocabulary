@@ -13,6 +13,143 @@ from core.wordbank import WordBank
 from core.settings import Settings
 from core.data import FileData
 
+class Operation:
+    def __init__(self, settings = None, wordbank = None, dictionary = None):
+        self.settings = settings
+        self.wordbank = wordbank
+        self.dictionary = dictionary
+
+        ### local vars ###
+        # self.__mode = EUIMode.FILE
+        # self.__word_list = None
+        # self.__list_idx = 0
+        # self.__file_data = None
+        # self.__filter_level = [0,1,2,3,4,5]
+        # self.__filter_freq = 0
+
+        # counter for all levels, 0 for not in the db
+        # self.__statistic_list = [0,0,0,0,0,0]
+        # self.__statistic_flag = False
+
+    def __ui_print(self, *args):
+        print("".join(map(str,args)), end="")
+    def __ui_print_line(self, *args):
+        print("".join(map(str,args)))
+
+    def __fuzzy_search(self, query_word, filter_flag = True):
+        # searching in dictionary
+        word_list = self.dictionary.fuzzySearch(query_word)
+        if word_list == False:
+            dbg_warning("The word haven't been found in dictionary")
+            return False
+        # self.__ui_print("{} ".format(query_word))
+        if word_list:
+            return word_list
+        else:
+            return False
+    def __search_word(self, query_word, filter_flag = True):
+        # searching in dictionary
+        dict_word = self.dictionary.search(query_word)
+        if dict_word == False:
+            dbg_warning("The word haven't been found in dictionary")
+            return False
+        # searching in databas
+        db_word = self.wordbank.get_word(query_word)
+        # if filter_flag and self.__filter(query_word, db_word) == False:
+        #     dbg_info("The word has been blocked by filter")
+        #     return False
+        # dbg_info(db_word)
+
+        # show information
+        # self.__ui_print("{} ".format(query_word))
+        # if self.__file_data is not None and self.__file_data.get_word_freq(query_word):
+        #     self.__ui_print(" +{}/{}".format(len(self.__word_list) - self.__list_idx, self.__file_data.get_word_freq(query_word)))
+        # if db_word:
+        #     self.__ui_print_line(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
+        #     self.__statistic_list[int(db_word[1])] += 1
+        # else:
+        #     self.__ui_print_line()
+        #     self.__statistic_list[0] += 1
+
+        if dict_word:
+            # dict_word.show_meaning()
+            return dict_word
+        else:
+            return False
+    def def_search(self, args):
+
+        dict_word=None
+        # dbg_trace(args)
+        # arg_dict = ArgParser.args_parser(args)
+        arg_dict = args
+        arg_key = list(arg_dict.keys())
+
+        # print(arg_dict[arg_key[0]])
+        dict_word = self.__search_word(arg_dict[arg_key[0]])
+        if dict_word is False:
+            word_list = self.__fuzzy_search(arg_dict[arg_key[0]])
+            if word_list is False:
+                return False
+            else:
+                self.__ui_print_line(word_list)
+            # self.__ui_print_line('No such word.')
+        else:
+            dict_word.show_meaning()
+            self.wordbank.update(dict_word.word)
+            return True
+    def search(self, args):
+
+        dict_word=None
+        # dbg_trace(args)
+        # arg_dict = ArgParser.args_parser(args)
+        arg_dict = args
+        arg_key = list(arg_dict.keys())
+
+        # print(arg_dict[arg_key[0]])
+        dict_word = self.__search_word(arg_dict[arg_key[1]])
+        if dict_word is False:
+            word_list = self.__fuzzy_search(arg_dict[arg_key[1]])
+            if word_list is False:
+                return False
+            else:
+                self.__ui_print_line(word_list)
+            # self.__ui_print_line('No such word.')
+        else:
+            dict_word.show_meaning()
+            self.wordbank.update(dict_word.word)
+            return True
+    def fuzzy(self, args):
+        dict_word=None
+        # dbg_trace(args)
+        # arg_dict = ArgParser.args_parser(args)
+        arg_dict = args
+        arg_key = list(arg_dict.keys())
+
+        # print(arg_dict[arg_key[0]])
+        word_list = self.__fuzzy_search(arg_dict[arg_key[1]])
+        dbg_debug('word list: ', word_list)
+        if word_list is False:
+            self.__ui_print_line('No such word.')
+            return False
+        else:
+            self.__ui_print_line(word_list)
+            return True
+    def vocabulary(self, args):
+        dict_word=None
+
+        arg_dict = args
+        arg_key = list(arg_dict.keys())
+
+        word_list = self.wordbank.quer_for_all_word()
+        for each_word in word_list:
+            self.__ui_print_line(each_word)
+        # dbg_info(word_list)
+        self.wordbank.dump_table("WORD")
+
+        return True
+
+    def file(self):
+        return True
 
 class EUIMode(Enum):
     WORD = auto()
@@ -21,7 +158,7 @@ class EUIMode(Enum):
     LIST = auto()
     MAX = auto()
 
-class Operation:
+class Operation_legacy:
     def __init__(self, settings = None, wordbank = None, dictionary = None):
         self.settings = settings
         self.wordbank = wordbank

@@ -1,9 +1,89 @@
 import sqlite3
 import os
 from core.settings import Settings
+from utility.debug import *
+from utility.udb import *
 
+class WordBank(uDatabase):
+    psettings = Settings()
+    def __init__(self):
+        self.db_path=self.psettings.get('config_path') + self.psettings.get('database')
+        super().__init__(self.db_path)
+    def db__init(self):
+        if not os.path.isfile(self.db_path):
+            # conn = sqlite3.connect(self.psettings.get('config_path') + self.psettings.get('database'))
+            # c = conn.cursor()
+            # Create table
+            self.execute('''CREATE TABLE WORD
+                         (word text, times real, familiar real)''')
 
-class WordBank:
+            # Insert a row of data
+            self.execute("INSERT INTO Word VALUES ('a',1,1)")
+
+            # Save (commit) the changes
+            self.commit()
+
+    def quer_for_all_word(self, times = None, familiar = None):
+        query_str = """SELECT * FROM WORD"""
+        if times is not None and familiar is not None:
+            query_str = "%s WHERE times == %i AND familiar == %i" % (query_str, times, familiar)
+        elif familiar is not None:
+            query_str = "%s WHERE familiar == %i" % (query_str, familiar)
+        elif familiar is not None:
+            query_str = "%s WHERE times == %i" % (query_str, times)
+
+        dbg_debug(query_str)
+        result = self.execute(query_str)
+        dbg_debug('result:', result)
+
+        return result# .fetchall()
+    def get_word(self, word):
+        query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
+        result = self.execute(query_str)
+        ret_data = result#.fetchall()
+        if len(ret_data) != 0:
+            return ret_data[0]
+        else:
+            return False
+    def update(self, word, times = 1, familiar = 0):
+        # dbg_info(word)
+        query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
+
+        result = self.execute(query_str, fetchone=True)#.fetchone()
+        dbg_debug(query_str, result)
+        if result is None:
+            # dbg_info(word, 'Not in ')
+            return self.insert(word, times, familiar)
+        else:
+            query_str = "UPDATE WORD SET times = %i, familiar = %i WHERE word == '%s'" % (result[0] + times, result[1] + familiar, word)
+            dbg_debug(query_str)
+            result = self.execute(query_str, fetchone=True)#.fetchone()
+        return result ##.fetchone()
+    def insert(self, word, times = 1, familiar = 0):
+        query_str = "SELECT word FROM WORD WHERE word == '%s'" % word
+        # print(query_str)
+
+        result = self.execute(query_str, fetchone=True)#.fetchone()
+        # print(result)
+        if result is not None:
+            # word is already in the wordbank
+            return False
+        else:
+            query_str = "INSERT INTO WORD (word, times, familiar) VALUES ('%s', %i, %i)" % (word, times, familiar)
+            # print(query_str)
+            result = self.execute(query_str, fetchone=True)#.fetchone()
+        return result ##.fetchone()
+    def update_familiar(self, word, familiar = 0):
+        query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
+        result = self.execute(query_str, fetchone=True)#.fetchone()
+        if result is None:
+            return False
+        else:
+            query_str = "UPDATE WORD SET familiar = %i WHERE word == '%s'" % (familiar, word)
+            result = self.execute(query_str, fetchone=True)#.fetchone()
+        return True
+
+class WordBank_bak:
     __db_lock = False
     __db_connection = None
     __cursor = None
@@ -39,6 +119,7 @@ class WordBank:
         else:
             return False
     def __is_locked(self):
+        dbg_trace("DB Lock:", self.__db_lock)
         return self.__db_lock
     def connect(self):
         if self.__is_locked():
@@ -72,13 +153,21 @@ class WordBank:
             # print('sent commit')
             self.__db_connection.commit()
             return True
-    def quer_for_all_word(self):
+    def quer_for_all_word(self, times = None, familiar = None):
         if self.__is_locked():
             # print('db is locked')
             return False
         else:
             self.__lock()
-            query_str = """SELECT * FROM WORD;"""
+            query_str = """SELECT * FROM WORD"""
+            if times is not None and familiar is not None:
+                query_str = "%s WHERE times == %i AND familiar == %i" % (query_str, times, familiar)
+            elif familiar is not None:
+                query_str = "%s WHERE familiar == %i" % (query_str, familiar)
+            elif familiar is not None:
+                query_str = "%s WHERE times == %i" % (query_str, times)
+
+            dbg_debug(query_str)
             result = self.__cursor.execute(query_str)
             self.__unlock()
             return result.fetchall()
@@ -97,6 +186,7 @@ class WordBank:
             else:
                 return False
     def update(self, word, times = 1, familiar = 0):
+        dbg_info(word)
         query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
         if self.__is_locked():
             # print('db is locked')
@@ -104,11 +194,13 @@ class WordBank:
         else:
             self.__lock()
             result = self.__cursor.execute(query_str).fetchone()
+            dbg_debug(query_str, result)
             if result is None:
                 self.__unlock()
                 return False
             else:
                 query_str = "UPDATE WORD SET times = %i, familiar = %i WHERE word == '%s'" % (result[0] + times, result[1] + familiar, word)
+                dbg_debug(query_str)
                 result = self.__cursor.execute(query_str).fetchone()
             self.__unlock()
             return result #.fetchone()

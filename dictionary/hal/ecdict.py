@@ -14,6 +14,29 @@ class SECDict:
         self.dict_db = os.path.join(os.path.dirname(__file__), dict_db)
         dbg_info('Open dictionary: ', self.dict_db)
         self.start_dict = StarDict(self.dict_db, False)
+    def __fuzzy_search(self, query_word):
+        result = self.start_dict.match(query_word)
+        candidate_list = list()
+        # dbg_debug('fuzzy search: ', result)
+        if result == None:
+            return False
+        for each_candidate in result:
+            candidate_list.append(each_candidate[1])
+        return candidate_list
+
+        # word = SWord()
+        # word.word = query_word
+        # word.phonetic = result['phonetic']
+        # word.form = result['exchange'].replace('/', ' ').replace(':', '/')
+        # for each_meaning in result['definition'].split('\n'): 
+        #     if len(each_meaning) == 0:
+        #         continue
+        #     word.definition.append(each_meaning)
+        # for each_meaning in result['translation'].split('\n'): 
+        #     if len(each_meaning) == 0:
+        #         continue
+        #     word.translation.append(each_meaning)
+        # return word
     def __search(self, query_word):
         result = self.start_dict.query(query_word)
         if result == None:
@@ -39,10 +62,9 @@ class SECDict:
             return False
     def fuzzySearch(self, query_word):
         try:
-            return self.__search(query_word)
+            return self.__fuzzy_search(query_word)
         except KeyError:
             return False
-        pass
 
 class ECDict:
     def __init__(self, dict_db="dict.db"):

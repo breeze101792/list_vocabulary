@@ -80,8 +80,8 @@ def main():
     my_dict = SECDict(dict_db=dict_db)
 
     wordbank = WordBank()
+    wordbank.setup()
     wordbank.connect()
-    wordbank.db__init()
 
     # open file
     try:
@@ -102,7 +102,7 @@ def main():
             pdcli.regist_cmd("fuzzy", op.fuzzy, description="fuzzy search")
             pdcli.regist_cmd("search", op.search, description="regular search")
             pdcli.regist_cmd("vocabulary", op.vocabulary, description="my vocabulary")
-            # pdcli.regist_cmd("file", op.file, description="file ")
+            pdcli.regist_cmd("file", op.file, description="Read file do list ")
             pdcli.run()
         elif psettings.get('mode') == EUIMode.LIST:
             # query all words on the database
@@ -125,6 +125,7 @@ def main():
             pdcli.regist_cmd("fuzzy", op_test.fuzzy, description="fuzzy search")
             pdcli.regist_cmd("search", op_test.search, description="regular search")
             pdcli.regist_cmd("vocabulary", op.vocabulary, description="my vocabulary")
+            pdcli.regist_cmd("file", op.file, description="Read file do list ")
             pdcli.regist_default_cmd(op_test.def_search)
             pdcli.run()
 

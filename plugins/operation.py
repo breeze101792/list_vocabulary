@@ -148,7 +148,58 @@ class Operation:
 
         return True
 
-    def file(self):
+    def file(self, args):
+        dict_word=None
+
+        arg_dict = args
+        arg_key = list(arg_dict.keys())
+
+        # self.__ui_print_line(args)
+
+        # read file
+        file_name = arg_dict[arg_key[1]]
+        # file_name = "/mnt/data/workspace/code/list_vocabulary/data/i_have_a_dream.txt"
+        # self.__ui_print_line(file_name)
+        file_raw = open(file_name)
+        text = file_raw.read()
+        file_raw.close()
+
+        # self.__ui_print_line(text)
+        file_data = FileData(text)
+        file_data.do_word_list()
+
+        # self.__ui_print_line(file_data.word_list)
+        # self.__ui_print_line(file_data.word_counter)
+        # word_len = len(file_data.word_list)
+        word_idx = 0
+        key_delay=0.01
+        while word_idx < len(file_data.word_list):
+            word = file_data.word_list[word_idx]
+            counter = file_data.word_counter[word_idx]
+
+            # cls
+            print('\x1bc')
+            self.__ui_print_line("File List. Word:{}, Count:{}".format(word, counter))
+            self.search({'arg_0': 'file', 'arg_1': word})
+            self.__ui_print_line("Enter a key(x/Exit, n/Next, P/Previous):")
+            while True:
+
+                key_press = getch()
+                time.sleep(key_delay)
+
+                if key_press in ("n", "N"):
+                    word_idx += 1
+                    break
+                elif key_press in ("p", "P"):
+                    word_idx -= 1
+                    break
+                elif key_press in ("x", "X"):
+                    return True
+                else:
+                    print("Unknown key>" + key_press)
+                    continue
+
+
         return True
 
 class EUIMode(Enum):

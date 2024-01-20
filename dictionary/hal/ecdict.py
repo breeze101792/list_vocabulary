@@ -2,7 +2,6 @@ from dictionary.dictionary import Word, SWord
 from third_party.ecdict.stardict import *
 from utility.debug import *
 
-
 def ischinese(test_str):
     for ch in test_str:
         if ord(ch) < 0x4e00 or ord(ch) > 0x9fff:

@@ -9,8 +9,11 @@ class WordBank(uDatabase):
     def __init__(self):
         self.db_path=self.psettings.get('config_path') + self.psettings.get('database')
         super().__init__(self.db_path)
-    def db__init(self):
+    def setup(self):
         if not os.path.isfile(self.db_path):
+            # dbg_info('Database Init')
+            dbg_info("Initiialize database")
+            self.connect()
             # conn = sqlite3.connect(self.psettings.get('config_path') + self.psettings.get('database'))
             # c = conn.cursor()
             # Create table

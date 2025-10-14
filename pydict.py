@@ -11,6 +11,7 @@ from dictionary.hal.ecdict import *
 from core.data import FileData
 from core.settings import Settings
 from core.wordbank import *
+from core.core import Core
 
 from utility.cli import CommandLineInterface as cli 
 from utility.debug import *
@@ -85,25 +86,28 @@ def main():
 
     # open file
     try:
-        op = Operation(settings = psettings, wordbank = wordbank, dictionary = my_dict)
+        # op = Operation(settings = psettings, wordbank = wordbank, dictionary = my_dict)
 
         op_legacy = Operation_legacy(settings = psettings, wordbank = wordbank, dictionary = my_dict)
         op_legacy.set_filter(level = word_level, freq = word_freq)
 
         dbg_info("Mode: ", psettings.get('mode'))
         if psettings.get('mode') == EUIMode.WORD:
-            op.def_search({'word':word_list[0]})
+            # op.def_search({'word':word_list[0]})
+            print("Not supported.")
         elif psettings.get('mode') == EUIMode.INTERCTIVE:
-            # get into interative mode
-            pdcli = cli(promote='PYD')
-            pdcli.one_command = True
-            # pdcli.regist_cmd()
-            pdcli.regist_default_cmd(op.def_search)
-            pdcli.regist_cmd("fuzzy", op.fuzzy, description="fuzzy search")
-            pdcli.regist_cmd("search", op.search, description="regular search")
-            pdcli.regist_cmd("vocabulary", op.vocabulary, description="my vocabulary")
-            pdcli.regist_cmd("file", op.file, description="Read file do list ")
+            pdcli = Core()
             pdcli.run()
+
+            # get into interative mode
+            # pdcli = cli(promote='PYD')
+            # # pdcli.one_command = True
+            # # pdcli.regist_default_cmd(op.def_search)
+            # pdcli.regist_cmd("fuzzy", op.fuzzy, description="fuzzy search")
+            # pdcli.regist_cmd("search", op.search, description="regular search")
+            # pdcli.regist_cmd("vocabulary", op.vocabulary, description="my vocabulary")
+            # pdcli.regist_cmd("file", op.file, description="Read file do list ")
+            # pdcli.run()
         elif psettings.get('mode') == EUIMode.LIST:
             # query all words on the database
             op_legacy.set_mode(EUIMode.LIST)
@@ -116,18 +120,19 @@ def main():
             op_legacy.read_file()
             op_legacy.run()
         elif psettings.get('mode') == 'TEST':
-
-            op_test = Operation(settings = psettings, wordbank = wordbank, dictionary = my_dict)
-
-            pdcli = cli(promote='PYD Test ')
-            pdcli.one_command = True
-            # pdcli.regist_cmd("fuzzy", op_test.fuzzy, description="fuzzy search", arg_list=['project', 'task', 'name', 'description']  )
-            pdcli.regist_cmd("fuzzy", op_test.fuzzy, description="fuzzy search")
-            pdcli.regist_cmd("search", op_test.search, description="regular search")
-            pdcli.regist_cmd("vocabulary", op.vocabulary, description="my vocabulary")
-            pdcli.regist_cmd("file", op.file, description="Read file do list ")
-            pdcli.regist_default_cmd(op_test.def_search)
+            pdcli = Core(promote='ptest')
             pdcli.run()
+
+            # op_test = Operation(settings = psettings, wordbank = wordbank, dictionary = my_dict)
+            #
+            # pdcli = cli(promote='PYD Test ')
+            # # pdcli.one_command = True
+            # # pdcli.regist_default_cmd(op_test.def_search)
+            # pdcli.regist_cmd("fuzzy", op_test.fuzzy, description="fuzzy search")
+            # pdcli.regist_cmd("search", op_test.search, description="regular search")
+            # pdcli.regist_cmd("vocabulary", op.vocabulary, description="my vocabulary")
+            # pdcli.regist_cmd("file", op.file, description="Read file do list ")
+            # pdcli.run()
 
         # finialize
         wordbank.commit()

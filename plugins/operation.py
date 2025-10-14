@@ -15,7 +15,7 @@ from core.data import FileData
 
 class Operation:
     def __init__(self, settings = None, wordbank = None, dictionary = None):
-        self.settings = settings
+        # self.settings = settings
         self.wordbank = wordbank
         self.dictionary = dictionary
 
@@ -35,6 +35,113 @@ class Operation:
         print("".join(map(str,args)), end="")
     def __ui_print_line(self, *args):
         print("".join(map(str,args)))
+
+    def __listing_word(self, word_list = [], word_counter = []):
+        word_idx = 0
+        key_delay=0.01
+        while True:
+            if word_idx > len(word_list) - 1:
+                word_idx = len(word_list) - 1
+            elif word_idx == -1:
+                word_idx = 0
+
+            word = word_list[word_idx]
+            if len(word_counter) == len(word_list):
+                counter = word_counter[word_idx]
+            else:
+                counter = 0
+
+            # cls
+            print('\x1bc')
+            self.__ui_print_line("File List. Word:{}, Count:{}".format(word, counter))
+            self.search({'arg_0': 'file', 'arg_1': word})
+            self.__ui_print_line("Enter a key(x:Exit, n/l:Next, p/h:Previous):")
+            while True:
+
+                key_press = getch()
+                time.sleep(key_delay)
+
+                if key_press in ("n", "N") or key_press in ("l"):
+                    word_idx += 1
+                    break
+                elif key_press in ("p", "P") or key_press in ("h"):
+                    word_idx -= 1
+                    break
+                elif key_press in ("x", "X") or key_press == chr(0x04):
+                    # ctrl + d
+                    return True
+                elif key_press in ("0"):
+                    if self.wordbank.update_familiar(word, int(key_press)):
+                        self.wordbank.commit()
+                        self.__ui_print_line("Remove {} from list".format(word))
+
+                elif key_press in ("1", "2", "3", "4", "5"):
+                    if not self.wordbank.update_familiar(word, int(key_press)):
+                        self.wordbank.insert(word, int(key_press))
+                    self.wordbank.commit()
+                    self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+
+                elif key_press == chr(0x0c):
+                    # ctrl + l
+                    break
+                else:
+                    print("Unknown key>" + key_press)
+                    continue
+    # FIXME, unify function with listing_word
+    def dictionary_search(self, args):
+        key_delay=0.01
+
+        word = ""
+        while True:
+
+            if word != "":
+                # cls
+                print('\x1bc')
+                self.__ui_print_line("File List. Word:{}".format(word))
+                self.search({'arg_0': 'file', 'arg_1': word})
+            self.__ui_print_line("Enter a key(x:Exit, n/l:Next, p/h:Previous):")
+            while True:
+
+                key_press = getch()
+                time.sleep(key_delay)
+
+                if key_press in ("x", "X") or key_press == chr(0x04):
+                    # ctrl + d
+                    return True
+                elif key_press in ("0"):
+                    if self.wordbank.update_familiar(word, int(key_press)):
+                        self.wordbank.commit()
+                        self.__ui_print_line("Remove {} from list".format(word))
+
+                elif key_press in ("1", "2", "3", "4", "5"):
+                    if not self.wordbank.update_familiar(word, int(key_press)):
+                        self.wordbank.insert(word, int(key_press))
+                    self.wordbank.commit()
+                    self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                elif key_press in (":"):
+                    word = input("Searching Word: ")
+                    break
+
+                elif key_press == chr(0x0c):
+                    # ctrl + l
+                    break
+                else:
+                    print("Unknown key>" + key_press)
+                    continue
+    def vocabulary_memorize(self, args):
+        word_idx = 0
+        familiar_idx = 2
+
+        familiar_target = 1
+
+        word_list = []
+        for each_word in self.wordbank.quer_for_all_word():
+            if len(each_word) != 3:
+                continue
+            if each_word[familiar_idx] == familiar_target:
+                word_list.append(each_word[word_idx])
+
+        self.__listing_word(word_list)
 
     def __fuzzy_search(self, query_word, filter_flag = True):
         # searching in dictionary
@@ -76,6 +183,7 @@ class Operation:
             return dict_word
         else:
             return False
+
     def def_search(self, args):
 
         dict_word=None
@@ -171,34 +279,8 @@ class Operation:
         # self.__ui_print_line(file_data.word_list)
         # self.__ui_print_line(file_data.word_counter)
         # word_len = len(file_data.word_list)
-        word_idx = 0
-        key_delay=0.01
-        while word_idx < len(file_data.word_list):
-            word = file_data.word_list[word_idx]
-            counter = file_data.word_counter[word_idx]
 
-            # cls
-            print('\x1bc')
-            self.__ui_print_line("File List. Word:{}, Count:{}".format(word, counter))
-            self.search({'arg_0': 'file', 'arg_1': word})
-            self.__ui_print_line("Enter a key(x/Exit, n/Next, P/Previous):")
-            while True:
-
-                key_press = getch()
-                time.sleep(key_delay)
-
-                if key_press in ("n", "N"):
-                    word_idx += 1
-                    break
-                elif key_press in ("p", "P"):
-                    word_idx -= 1
-                    break
-                elif key_press in ("x", "X"):
-                    return True
-                else:
-                    print("Unknown key>" + key_press)
-                    continue
-
+        self.__listing_word(file_data.word_list, file_data.word_counter)
 
         return True
 

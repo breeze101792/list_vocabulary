@@ -17,8 +17,11 @@ class SWord:
         for each_def in definition:
             print(self.__cfg_indentation + each_def)
     def display(self):
+        print("{}".format(self.word), end='')
         if len(self.phonetic) != 0:
-            print("[{}]".format(self.word))
+            print(" [{}]".format(self.word))
+        else:
+            print()
         if len(self.form) != 0:
             print("Forms: " + self.form)
         if len(self.definition) != 0:

@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import random
 import threading
 import time
 import subprocess as sp
@@ -51,9 +52,13 @@ class Operation:
             else:
                 counter = 0
 
+            word_info = self.wordbank.get_word(word)
+            if len(word_info) == 2:
+                familiar = self.wordbank.get_word(word)[1]
+
             # cls
             print('\x1bc')
-            self.__ui_print_line("File List. Word:{}, Count:{}".format(word, counter))
+            self.__ui_print_line("Word:{}, Familiar:{}, Count:{}".format(word, familiar,counter))
             self.search({'arg_0': 'file', 'arg_1': word})
             self.__ui_print_line("Enter a key(x:Exit, n/l:Next, p/h:Previous):")
             while True:
@@ -67,6 +72,13 @@ class Operation:
                 elif key_press in ("p", "P") or key_press in ("h"):
                     word_idx -= 1
                     break
+                elif key_press in ("m"):
+                    if word_idx + 1 < len(word_list):
+                        next_word = word_list[word_idx + 1]
+                        self.__ui_print_line("Next Word: {}".format(next_word))
+                    else:
+                        self.__ui_print_line("End of list.")
+                    continue
                 elif key_press in ("x", "X") or key_press == chr(0x04):
                     # ctrl + d
                     return True
@@ -141,6 +153,7 @@ class Operation:
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])
 
+        random.shuffle(word_list)
         self.__listing_word(word_list)
 
     def __fuzzy_search(self, query_word, filter_flag = True):

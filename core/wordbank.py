@@ -21,7 +21,7 @@ class WordBank(uDatabase):
                          (word text, times real, familiar real)''')
 
             # Insert a row of data
-            self.execute("INSERT INTO Word VALUES ('a',1,1)")
+            self.execute("INSERT INTO Word VALUES ('a',0,0)")
 
             # Save (commit) the changes
             self.commit()
@@ -76,7 +76,7 @@ class WordBank(uDatabase):
             # print(query_str)
             result = self.execute(query_str, fetchone=True)#.fetchone()
         return result ##.fetchone()
-    def update_familiar(self, word, familiar = 0):
+    def update_familiar(self, word, familiar):
         query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
         result = self.execute(query_str, fetchone=True)#.fetchone()
         if result is None:

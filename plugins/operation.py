@@ -100,13 +100,15 @@ class Operation:
                 elif key_press in ("0"):
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
-                        self.__ui_print_line("Remove {} from list".format(word))
+                        # self.__ui_print_line("Remove {} from list".format(word))
+                    break
 
                 elif key_press in ("1", "2", "3", "4", "5"):
                     if not self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.insert(word, int(key_press))
                     self.wordbank.commit()
-                    self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                    # self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                    break
                 elif key_press in (":"):
                     self.__ui_print_line("\n== Enter Dictionary ==")
                     self.__ui_print_line("=====================================")
@@ -125,6 +127,8 @@ class Operation:
         word_idx = 0
         key_delay=0.01
         meaning_showed = False
+        if len(word_list) == 0:
+            return False
         while True:
             if word_idx > len(word_list) - 1:
                 word_idx = len(word_list) - 1
@@ -172,13 +176,15 @@ class Operation:
                 elif key_press in ("0"):
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
-                        self.__ui_print_line("Remove {} from list".format(word))
+                        # self.__ui_print_line("Remove {} from list".format(word))
+                    break
 
                 elif key_press in ("1", "2", "3", "4", "5"):
                     if not self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.insert(word, int(key_press))
                     self.wordbank.commit()
-                    self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                    # self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                    break
                 elif key_press in (":"):
                     self.__ui_print_line("\n== Enter Dictionary ==")
                     self.__ui_print_line("=====================================")
@@ -199,14 +205,14 @@ class Operation:
 
         self.__ui_print("== Dictionary Search ==")
         while True:
+            # cls
+            if clear:
+                print('\x1bc')
+                self.__ui_print_line("== Dictionary Search ==\n")
+            else:
+                print("\n")
 
             if word != "":
-                # cls
-                if clear:
-                    print('\x1bc')
-                    self.__ui_print_line("== Dictionary Search ==\n")
-                else:
-                    print("\n")
                 # self.__ui_print_line("File List. Word:{}".format(word))
                 self.search({'arg_0': 'file', 'arg_1': word})
             self.__ui_print_line("Enter a key(q:Exit, 0-5:Grade, ::Search):")
@@ -246,7 +252,7 @@ class Operation:
         familiar_target = 1
         if args["#"] == 1 and args["1"] and args["1"].isdigit():
             familiar_target = int(args["1"])
-        dbg_info("Change familiar level to {}.".format(familiar_target))
+        # dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
         for each_word in self.wordbank.quer_for_all_word():

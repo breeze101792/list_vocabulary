@@ -140,7 +140,7 @@ class Operation:
 
             # cls
             print('\x1bc')
-            self.__ui_print_line("== Memorize words. ==", meaning_showed)
+            self.__ui_print_line("== Memorize words. ==")
             self.__ui_print_line("=> Word:{}, Familiar:{}".format(word, familiar))
             if meaning_showed is True:
                 self.search({'arg_0': 'file', 'arg_1': word})

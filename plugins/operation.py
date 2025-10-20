@@ -32,6 +32,12 @@ class Operation:
         # self.__statistic_list = [0,0,0,0,0,0]
         # self.__statistic_flag = False
 
+        ## Familiar Level
+        # 0: do not need to remember it. too easy or useless word.
+        # 1. New word need to memorize it.
+        # 2. Memorize words or easy-remembered words, but still need to review again.
+        # 3. Words that already memorized.
+
     def __ui_print(self, *args):
         print("".join(map(str,args)), end="")
     def __ui_print_line(self, *args):
@@ -52,34 +58,115 @@ class Operation:
             else:
                 counter = 0
 
+            familiar = 0
             word_info = self.wordbank.get_word(word)
-            if len(word_info) == 2:
+            if word_info and len(word_info) == 2:
                 familiar = self.wordbank.get_word(word)[1]
 
             # cls
             print('\x1bc')
-            self.__ui_print_line("Word:{}, Familiar:{}, Count:{}".format(word, familiar,counter))
+            self.__ui_print_line("== Listing words. ==")
+            self.__ui_print_line("== Word:{}, Familiar:{}, Count:{} ==\n".format(word, familiar,counter))
             self.search({'arg_0': 'file', 'arg_1': word})
-            self.__ui_print_line("Enter a key(x:Exit, n/l:Next, p/h:Previous):")
+            self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, f:Familiar, n:New words, 0-5:Grade, ::Search):")
             while True:
 
                 key_press = getch()
                 time.sleep(key_delay)
 
-                if key_press in ("n", "N") or key_press in ("l"):
+                if key_press in ("j"):
                     word_idx += 1
                     break
-                elif key_press in ("p", "P") or key_press in ("h"):
+                elif key_press in ("k"):
                     word_idx -= 1
                     break
-                elif key_press in ("m"):
-                    if word_idx + 1 < len(word_list):
-                        next_word = word_list[word_idx + 1]
-                        self.__ui_print_line("Next Word: {}".format(next_word))
-                    else:
-                        self.__ui_print_line("End of list.")
+                elif key_press in ("q", "Q") or key_press == chr(0x04):
+                    # ctrl + d
+                    return True
+                elif key_press in ("f"):
+                    familiar_index = 2
+                    if not self.wordbank.update_familiar(word, int(familiar_index)):
+                        self.wordbank.insert(word, int(familiar_index))
+                    self.wordbank.commit()
+                    word_idx += 1
+                    break
+                elif key_press in ("n"):
+                    memorize_index = 1
+                    if not self.wordbank.update_familiar(word, int(memorize_index)):
+                        self.wordbank.insert(word, int(memorize_index))
+                    self.wordbank.commit()
+                    word_idx += 1
+                    break
+                elif key_press in ("0"):
+                    if self.wordbank.update_familiar(word, int(key_press)):
+                        self.wordbank.commit()
+                        self.__ui_print_line("Remove {} from list".format(word))
+
+                elif key_press in ("1", "2", "3", "4", "5"):
+                    if not self.wordbank.update_familiar(word, int(key_press)):
+                        self.wordbank.insert(word, int(key_press))
+                    self.wordbank.commit()
+                    self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                elif key_press in (":"):
+                    self.__ui_print_line("\n== Enter Dictionary ==")
+                    self.__ui_print_line("=====================================")
+                    word = input("Searching Word: ")
+                    self.dictionary_search(word = word, clear = False)
+                    print('\x1bc')
+                    break
+
+                elif key_press == chr(0x0c):
+                    # ctrl + l
+                    break
+                # else:
+                #     print("Unknown key>" + key_press)
+                #     continue
+    def __memorize_list(self, word_list = []):
+        word_idx = 0
+        key_delay=0.01
+        meaning_showed = False
+        while True:
+            if word_idx > len(word_list) - 1:
+                word_idx = len(word_list) - 1
+            elif word_idx == -1:
+                word_idx = 0
+
+            word = word_list[word_idx]
+
+            familiar = 0
+            word_info = self.wordbank.get_word(word)
+            if word_info and len(word_info) == 2:
+                familiar = self.wordbank.get_word(word)[1]
+
+            # cls
+            print('\x1bc')
+            self.__ui_print_line("== Memorize words. ==", meaning_showed)
+            self.__ui_print_line("=> Word:{}, Familiar:{}".format(word, familiar))
+            if meaning_showed is True:
+                self.search({'arg_0': 'file', 'arg_1': word})
+
+            self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, m:Show meaning, M: Default show meanings, 0-5:Grade, ::Search):")
+
+            tmp_meaning_showed = meaning_showed
+            while True:
+                key_press = getch()
+                time.sleep(key_delay)
+
+                if key_press in ("j"):
+                    word_idx += 1
+                    break
+                elif key_press in ("k"):
+                    word_idx -= 1
+                    break
+                elif key_press in ("M"):
+                    meaning_showed = not meaning_showed
+                    break
+                elif key_press in ("m") and tmp_meaning_showed is False:
+                    tmp_meaning_showed = True
+                    self.__ui_print_line("")
+                    self.search({'arg_0': 'file', 'arg_1': word})
                     continue
-                elif key_press in ("x", "X") or key_press == chr(0x04):
+                elif key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
                 elif key_press in ("0"):
@@ -92,32 +179,43 @@ class Operation:
                         self.wordbank.insert(word, int(key_press))
                     self.wordbank.commit()
                     self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
+                elif key_press in (":"):
+                    self.__ui_print_line("\n== Enter Dictionary ==")
+                    self.__ui_print_line("=====================================")
+                    word = input("Searching Word: ")
+                    self.dictionary_search(word = word, clear = False)
+                    print('\x1bc')
+                    break
 
                 elif key_press == chr(0x0c):
                     # ctrl + l
                     break
-                else:
-                    print("Unknown key>" + key_press)
-                    continue
+                # else:
+                #     print("Unknown key>" + key_press)
+                #     continue
     # FIXME, unify function with listing_word
-    def dictionary_search(self, args):
+    def dictionary_search(self, args = None, word = "", clear = True):
         key_delay=0.01
 
-        word = ""
+        self.__ui_print("== Dictionary Search ==")
         while True:
 
             if word != "":
                 # cls
-                print('\x1bc')
-                self.__ui_print_line("File List. Word:{}".format(word))
+                if clear:
+                    print('\x1bc')
+                    self.__ui_print_line("== Dictionary Search ==\n")
+                else:
+                    print("\n")
+                # self.__ui_print_line("File List. Word:{}".format(word))
                 self.search({'arg_0': 'file', 'arg_1': word})
-            self.__ui_print_line("Enter a key(x:Exit, n/l:Next, p/h:Previous):")
+            self.__ui_print_line("Enter a key(q:Exit, 0-5:Grade, ::Search):")
             while True:
 
                 key_press = getch()
                 time.sleep(key_delay)
 
-                if key_press in ("x", "X") or key_press == chr(0x04):
+                if key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
                 elif key_press in ("0"):
@@ -137,14 +235,18 @@ class Operation:
                 elif key_press == chr(0x0c):
                     # ctrl + l
                     break
-                else:
-                    print("Unknown key>" + key_press)
-                    continue
+                # else:
+                #     print("Unknown key>" + key_press)
+                #     continue
+        return False
     def vocabulary_memorize(self, args):
         word_idx = 0
         familiar_idx = 2
 
         familiar_target = 1
+        if args["#"] == 1 and args["1"] and args["1"].isdigit():
+            familiar_target = int(args["1"])
+        dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
         for each_word in self.wordbank.quer_for_all_word():
@@ -154,8 +256,9 @@ class Operation:
                 word_list.append(each_word[word_idx])
 
         random.shuffle(word_list)
-        self.__listing_word(word_list)
+        self.__memorize_list(word_list)
 
+        return True
     def __fuzzy_search(self, query_word, filter_flag = True):
         # searching in dictionary
         word_list = self.dictionary.fuzzySearch(query_word)
@@ -175,21 +278,6 @@ class Operation:
             return False
         # searching in databas
         db_word = self.wordbank.get_word(query_word)
-        # if filter_flag and self.__filter(query_word, db_word) == False:
-        #     dbg_info("The word has been blocked by filter")
-        #     return False
-        # dbg_info(db_word)
-
-        # show information
-        # self.__ui_print("{} ".format(query_word))
-        # if self.__file_data is not None and self.__file_data.get_word_freq(query_word):
-        #     self.__ui_print(" +{}/{}".format(len(self.__word_list) - self.__list_idx, self.__file_data.get_word_freq(query_word)))
-        # if db_word:
-        #     self.__ui_print_line(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
-        #     self.__statistic_list[int(db_word[1])] += 1
-        # else:
-        #     self.__ui_print_line()
-        #     self.__statistic_list[0] += 1
 
         if dict_word:
             # dict_word.show_meaning()
@@ -265,20 +353,26 @@ class Operation:
         for each_word in word_list:
             self.__ui_print_line(each_word)
         # dbg_info(word_list)
-        self.wordbank.dump_table("WORD")
+        # self.wordbank.dump_table("WORD")
 
         return True
 
     def file(self, args):
         dict_word=None
 
-        arg_dict = args
-        arg_key = list(arg_dict.keys())
-
-        # self.__ui_print_line(args)
+        file_name = ""
+        if args['#'] == 1:
+            file_name = args['1']
+            if file_name == "sample":
+                file_name = "./data/i_have_a_dream.txt"
+        else:
+            self.__ui_print_line(f"Error: No file specified.")
+            return False
 
         # read file
-        file_name = arg_dict[arg_key[1]]
+        if not os.path.exists(file_name):
+            self.__ui_print_line(f"Error: File '{file_name}' not found.")
+            return False
         # file_name = "/mnt/data/workspace/code/list_vocabulary/data/i_have_a_dream.txt"
         # self.__ui_print_line(file_name)
         file_raw = open(file_name)
@@ -289,210 +383,37 @@ class Operation:
         file_data = FileData(text)
         file_data.do_word_list()
 
-        # self.__ui_print_line(file_data.word_list)
-        # self.__ui_print_line(file_data.word_counter)
-        # word_len = len(file_data.word_list)
-
         self.__listing_word(file_data.word_list, file_data.word_counter)
 
         return True
 
-class EUIMode(Enum):
-    WORD = auto()
-    INTERCTIVE = auto()
-    FILE = auto()
-    LIST = auto()
-    MAX = auto()
+    def textfile(self, args):
+        dict_word=None
 
-class Operation_legacy:
-    def __init__(self, settings = None, wordbank = None, dictionary = None):
-        self.settings = settings
-        self.wordbank = wordbank
-        self.dictionary = dictionary
 
-        #### control vars ###
-        self.__flag_running = True
-        # 0.5 ms
-        self.__key_delay = 0.05
-
-        ### local vars ###
-        self.__mode = EUIMode.FILE
-        self.__word_list = None
-        self.__list_idx = 0
-        self.__file_data = None
-        self.__filter_level = [0,1,2,3,4,5]
-        self.__filter_freq = 0
-        # counter for all levels, 0 for not in the db
-        self.__statistic_list = [0,0,0,0,0,0]
-        self.__statistic_flag = False
-
-    def set_filter(self, level = None, freq = None):
-        if level is not None:
-            self.__filter_level = level
-        if freq is not None:
-            self.__filter_freq = freq
-
-    def set_mode(self, mode):
-        self.__mode = mode
-    def set_list(self, word_list):
-        self.__word_list = word_list
-    def read_file(self):
-        f = open(self.settings.get('file_name'))
-        text = f.read()
-        f.close()
-        self.__file_data = FileData(text)
-        self.__file_data.do_word_list()
-
-        self.__word_list = self.__file_data.get_word_list()
-
-    def ui_print(self, *args):
-        print("".join(map(str,args)), end="")
-    def ui_print_line(self, *args):
-        print("".join(map(str,args)))
-    def start_thread(self):
-        x = threading.Thread(target=self.key_press, args=(0,))
-        x.start()
-        self.ui_print_line("End of init key thread")
-    def __filter(self, query_word, db_word):
-        filter_flag = True
-        if self.__file_data != None and self.__file_data.get_word_freq(query_word) < self.__filter_freq:
-            filter_flag = filter_flag and False
-        dbg_debug(query_word, db_word,db_word != False)
-        if db_word != False:
-            if db_word[1] not in self.__filter_level:
-                filter_flag = filter_flag and False
-                dbg_debug("db_true:", filter_flag)
-            dbg_debug("db_true:", filter_flag, self.__filter_level)
-        else:
-            # see if it is lelve 0
-            if 0 not in self.__filter_level:
-                filter_flag = filter_flag and False
-                dbg_debug("db_false:", filter_flag)
-            dbg_debug("db_false:", filter_flag, self.__filter_level)
-        return filter_flag
-    def __get_word(self, mode):
-        next_word = ""
-        # this function handle word list
-        if mode == EUIMode.INTERCTIVE:
-            next_word = input(self.settings.get('name').__str__() + "> ").strip()
-        elif mode == EUIMode.FILE or mode == EUIMode.LIST or mode == EUIMode.WORD:
-            if self.__list_idx >= len(self.__word_list) or self.__list_idx < 0:
-                return False
-            else:
-                next_word = self.__word_list[self.__list_idx]
-        return next_word
-    def __search_word(self, query_word, filter_flag = True):
-        # searching in dictionary
-        dict_word = self.dictionary.search(query_word)
-        if dict_word == False:
-            dbg_warning("The word haven't been found in dictionary")
-            return False
-        # searching in databas
-        db_word = self.wordbank.get_word(query_word)
-        if filter_flag and self.__filter(query_word, db_word) == False:
-            dbg_info("The word has been blocked by filter")
-            return False
-
-        # show information
-        self.ui_print("{} ".format(query_word))
-        if self.__file_data is not None and self.__file_data.get_word_freq(query_word):
-            self.ui_print(" +{}/{}".format(len(self.__word_list) - self.__list_idx, self.__file_data.get_word_freq(query_word)))
-        if db_word:
-            self.ui_print_line(" (times: {}, familiar: {})".format(db_word[0], db_word[1]))
-            self.__statistic_list[int(db_word[1])] += 1
-        else:
-            self.ui_print_line()
-            self.__statistic_list[0] += 1
-        self.ui_print_line("---------------------------------------------------")
-        if dict_word:
-            dict_word.show_meaning()
-        self.ui_print_line("---------------------------------------------------")
-        return dict_word
-    def search(self, args):
-        func_ret=None
-        # dbg_trace(args)
-        # arg_dict = ArgParser.args_parser(args)
-        arg_dict = args
-        arg_key = list(arg_dict.keys())
-
-        # print(arg_dict[arg_key[0]])
-        func_ret = self.__search_word(arg_dict[arg_key[0]])
-        if func_ret is False:
-            self.ui_print_line('No such word.')
-            return False
-        else:
-            return True
-
-    def run(self):
-        while self.__flag_running == True:
-            # clean screen
-            sp.call('clear',shell=False)
-            # get next word
-            query_word = self.__get_word(self.__mode)
-            if query_word == False:
-                self.__flag_running == False
-                break
-            dict_word = self.__search_word(query_word)
-            if dict_word == False and (self.__mode == EUIMode.FILE or self.__mode == EUIMode.LIST):
-                self.__word_list.remove(self.__word_list[self.__list_idx])
-                continue
-            if self.__mode == EUIMode.WORD:
-                return
-            if self.__statistic_flag:
-                self.__list_idx += 1
-                continue
-
-            # operations
-            while self.__flag_running == True and self.__mode != EUIMode.WORD:
-                self.ui_print_line("Enter a key(x/Exit, n/Next, P/Previous, s/Searching, num/Grading):")
-                key_press = getch()
-                time.sleep(self.__key_delay)
-                if key_press in ("q", "Q", "x", "X"):
-                    self.ui_print_line(self.settings.get('msg_exit'))
-                    self.__flag_running = False
-                elif key_press in ("d", "D"):
-                    self.ui_print_line("Save to database")
-                    self.wordbank.commit()
-                    continue
-                elif key_press in ("s", "S"):
-                    if self.__mode == EUIMode.INTERCTIVE:
-                        break
-                    tmp_word = self.__get_word(EUIMode.INTERCTIVE)
-                    self.__search_word(tmp_word, filter_flag = False)
-                    continue
-                elif key_press in ("n", "N"):
-                    self.__list_idx += 1
-                    break
-                elif key_press in ("p", "P"):
-                    self.__list_idx -= 1
-                    break
-                elif key_press in ("1", "2", "3", "4", "5"):
-                    if not self.wordbank.update_familiar(dict_word.word, int(key_press)):
-                        self.wordbank.insert(dict_word.word, int(key_press))
-                    self.wordbank.commit()
-                    self.__list_idx += 1
-                    if self.__mode == EUIMode.INTERCTIVE:
-                        # clean screen
-                        sp.call('clear',shell=False)
-                        self.__search_word(query_word)
-                        continue
-                    else:
-                        break
-                elif key_press in ("b", "B"):
-                    break
-                else:
-                    print("Unknown key>" + key_press)
-                    continue
-        self.ui_print_line("Statistic: ", self.__statistic_list)
-    def key_press(self, test):
+        input_lines = []
+        self.__ui_print_line("Enter word list (press Enter on an empty line to finish):")
         while True:
-            x_tmp = getch()
-            self.ui_print_line("KeyPress: {}".format(x_tmp))
-            time.sleep(0.05)
-            if x_tmp in ("q", "Q", "x", "X"):
-                # self.ui_print_line(psettings.get('msg_exit'))
-                return
+            line = input()
+            if not line:
+                break
+            input_lines.append(line)
+        text = "\n".join(input_lines)
 
+        self.__ui_print_line(text)
+        file_data = FileData(text)
+        file_data.do_word_list(sorting = False)
+
+        self.__listing_word(file_data.word_list, file_data.word_counter)
+
+        return True
+#
+# class EUIMode(Enum):
+#     WORD = auto()
+#     INTERCTIVE = auto()
+#     FILE = auto()
+#     LIST = auto()
+#     MAX = auto()
 
 if __name__ == '__main__':
     psettings = Settings()

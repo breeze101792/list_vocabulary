@@ -1,3 +1,5 @@
+import collections
+from language.language import Language
 
 class FileData:
     def __init__(self, file = None):
@@ -6,6 +8,10 @@ class FileData:
         # self.words = None
         self.word_list = []
         self.word_counter = []
+
+        # TODO, Make it configable by language. For now, we ignore the basic english words.
+        # A list of common English words that beginners typically know (A1 level approximation).
+        self.ignore_list = Language.get_word_list('a1')
     def do_sentence_list(self):
         tmp_list = self.file.replace('\n', ' ').replace('  ', ' ').splitlines()
         tmp = []
@@ -51,31 +57,54 @@ class FileData:
             tmp.extend(FileData.word_extractor(word[idx:]))
         return tmp
 
-    def do_word_list(self):
+    def do_word_list(self, sorting = True):
         # TODO need to find another way to remvoe those symbol except '
-        tmp_words = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\"', ' ').replace('n\'', ' ').replace('\'', ' ').lower().split()
+        # Note: The initial aggressive replacement of characters like apostrophes
+        # might interfere with word_extractor's intended handling of contractions.
+        # This part is kept as per original code, but could be a source of issues.
+        tmp_words_raw = self.file.replace('>', ' ').replace('<', ' ').replace('.', ' ').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('\"', ' ').replace('n\'', ' ').replace('\'', ' ').lower().split()
+
         processed_word_list = []
+        for each_word_raw in tmp_words_raw:
+            # word_extractor returns a list of words
+            processed_word_list.extend(self.word_extractor(each_word_raw))
+
+        # Use a dictionary for efficient word counting
+        word_counts_map = collections.defaultdict(int)
+        # Use a list to store unique words in their order of first appearance
+        unique_words_ordered = []
+        # Use a set for efficient checking if a word has already been added to unique_words_ordered
+        seen_words_for_order = set()
+
+        for word in processed_word_list:
+            # Validate word: must be alphabetic and longer than 2 characters
+            if word.isalpha() and len(word) > 2:
+                word_counts_map[word] += 1
+
+                # If sorting is False, track the order of first appearance
+                if not sorting and word not in seen_words_for_order:
+                    unique_words_ordered.append(word)
+                    seen_words_for_order.add(word)
+
+        # Clear existing lists
         self.word_list = []
-        self.word_counter =  []
-        cidx = 0
-        for each_word in tmp_words:
-            # return a list of words
-            processed_word_list.extend(self.word_extractor(each_word))
-        word_list_sorted = sorted(processed_word_list)
-        while cidx < len(word_list_sorted):
-            if word_list_sorted[cidx].isalpha():
-                if len(word_list_sorted[cidx]) <= 2:
-                    # Skip the word if the length less then 2
-                    cidx += 1
+        self.word_counter = []
+
+        if sorting:
+            # Populate word_list and word_counter with alphabetically sorted words
+            sorted_words = sorted(word_counts_map.keys())
+            for word in sorted_words:
+                if word in self.ignore_list:
                     continue
-                if word_list_sorted[cidx] not in self.word_list:
-                    self.word_list.append(word_list_sorted[cidx])
-                    self.word_counter.append(1)
-                else:
-                    self.word_counter[self.word_list.index(word_list_sorted[cidx])] += 1
-            cidx += 1
-        # self.word_report()
-        # getch()
+                self.word_list.append(word)
+                self.word_counter.append(word_counts_map[word])
+        else:
+            # Populate word_list and word_counter with words in their order of first appearance
+            for word in unique_words_ordered:
+                if word in self.ignore_list:
+                    continue
+                self.word_list.append(word)
+                self.word_counter.append(word_counts_map[word])
     def do_list(self):
         self.sentence_list = self.file.splitlines()
         for line in self.sentence_list:

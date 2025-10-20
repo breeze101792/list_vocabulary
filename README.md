@@ -5,7 +5,9 @@ Known Issue
     *. data parsing issue "interposition" -> interpositio
 
 TODO
-    *. interation in search mode
-    *. ignore ratred word in file mode (for fast ratting)
+    1. interation in search mode
+    2. ignore ratred word in file mode (for fast ratting)
 
-    *. fuzzy search
+    3. fuzzy search
+    4. add dictionary mamnager and startdict support.
+    5. add (global) instance for dict/db.

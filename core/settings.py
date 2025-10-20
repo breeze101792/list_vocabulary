@@ -6,7 +6,7 @@ class Settings:
     'name':'List Words',\
     'version':'0.1',\
     'debug':False,\
-    'file_name':'./data/i\ have\ a\ dream.txt',\
+    'file_name':'./data/i_have_a_dream.txt',\
     'mode':'interactive',\
     'word_freq': 0,\
     'dictionary':'ydict',\

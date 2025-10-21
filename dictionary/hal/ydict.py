@@ -1,7 +1,8 @@
 import urllib.request
 from html.parser import HTMLParser
 
-from dictionary.dictionary import Word, SWord
+from dictionary.word import Word
+from dictionary.dictionary import Dictionary
 
 def ischinese(test_str):
     for ch in test_str:
@@ -172,7 +173,7 @@ class DictParser(HTMLParser):
         return self.word
 
 
-class ydict:
+class ydict(Dictionary):
     def __init__(self):
         self.url = "http://tw.dictionary.search.yahoo.com/search?p="
     def search(self, word):
@@ -187,6 +188,6 @@ class ydict:
         word = dp.get_word()
         # print(word.word, "word ")
         if word.word == '無法找到符合 ':
-            return False
+            return None
         else:
             return word

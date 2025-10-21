@@ -1,5 +1,7 @@
 from utility.cli import CommandLineInterface
 from plugins.operation import *
+from core.config import AppConfigManager
+from dictionary.manager import Manager as DictMgr
 
 class Core(CommandLineInterface):
     def __init__(self, promote='PYD'):
@@ -7,18 +9,18 @@ class Core(CommandLineInterface):
         super().__init__(promote, wellcome_message = wellcome_message)
 
         # pre init.
-        psettings = Settings()
-        psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
-        os.makedirs(psettings.get('config_path'), exist_ok=True)
+        appcgm = AppConfigManager()
 
-        dict_db = os.path.join(os.path.dirname(__file__), "../dict.db")
-        my_dict = SECDict(dict_db=dict_db)
+        dict_mgr = DictMgr()
 
         wordbank = WordBank()
-        wordbank.setup()
         wordbank.connect()
+        wordbank.setup()
 
-        operation = Operation(settings = psettings, wordbank = wordbank, dictionary = my_dict)
+        operation = Operation(wordbank = wordbank)
+
+        # setup command line
+        self.history_path = os.path.join(appcgm.get_path('log'), 'command.history')
 
         # register commands
         self.regist_cmd("fuzzy", operation.fuzzy, description="Fuzzy search for a word in the dictionary.")
@@ -28,3 +30,6 @@ class Core(CommandLineInterface):
         self.regist_cmd("vocabulary", operation.vocabulary, description="Display all words in the user's vocabulary bank.")
         self.regist_cmd("file", operation.file, description="Read words from a file and start an interactive learning session.")
         self.regist_cmd("text", operation.textfile, description="Read word list from input and start an interactive learning session.")
+
+        # debug commands
+        self.regist_cmd("dump_config", appcgm.dump, description="Dump all config.", group = 'debug')

@@ -1,4 +1,5 @@
-from dictionary.dictionary import Word, SWord
+from dictionary.word import Word
+from dictionary.dictionary import Dictionary
 
 def ischinese(test_str):
     for ch in test_str:
@@ -6,8 +7,9 @@ def ischinese(test_str):
             return False
     return True
 
-class LocalDict:
-    def __init__(self, dict_file="./default.dict"):
+class LocalDict(Dictionary):
+    def __init__(self, dict_name = "local dict", dict_file="./local.csv"):
+        self.dict_name = dict_name
         self.dict_file=dict_file
         self.dict = None
         self.__buildDict()
@@ -18,8 +20,9 @@ class LocalDict:
                 try:
                     part = "other"
 
+                    # test = v.meaning
                     (word, tmp) = each_line.split(" = ", 1)
-                    #(part, tmp) = tmp.split(".")
+                    (part, tmp) = tmp.split(".")
                     meanings = tmp.split(";")
                     each_word = (word, part, meanings)
                     self.dict[word] = list([part, meanings])
@@ -33,6 +36,7 @@ class LocalDict:
         # print(result)
 
         word.word = query_word
+        word.dict_name = self.dict_name
         if result[0] == 'n':
             part = word.noun
         elif result[0] == 'v':
@@ -54,4 +58,5 @@ class LocalDict:
         try:
             return self.__search(query_word)
         except KeyError:
-            return False
+            return None
+        return None

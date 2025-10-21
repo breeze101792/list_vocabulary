@@ -7,18 +7,17 @@ import subprocess as sp
 from utility.utils import getch
 from utility.debug import *
 
-from dictionary.hal.ecdict import *
+# from dictionary.hal.ecdict import *
+from dictionary.manager import Manager as DictMgr
 
-from core.settings import Settings
 from core.wordbank import WordBank
-from core.settings import Settings
 from core.data import FileData
 
 class Operation:
-    def __init__(self, settings = None, wordbank = None, dictionary = None):
-        # self.settings = settings
+    def __init__(self, wordbank = None):
         self.wordbank = wordbank
-        self.dictionary = dictionary
+        self.dict_mgr = DictMgr()
+
 
         ### local vars ###
         # self.__mode = EUIMode.FILE
@@ -265,9 +264,9 @@ class Operation:
         self.__memorize_list(word_list)
 
         return True
-    def __fuzzy_search(self, query_word, filter_flag = True):
+    def __suggest(self, query_word, filter_flag = True):
         # searching in dictionary
-        word_list = self.dictionary.fuzzySearch(query_word)
+        word_list = self.dict_mgr.suggest(query_word)
         if word_list == False:
             dbg_warning("The word haven't been found in dictionary")
             return False
@@ -278,10 +277,10 @@ class Operation:
             return False
     def __search_word(self, query_word, filter_flag = True):
         # searching in dictionary
-        dict_word = self.dictionary.search(query_word)
-        if dict_word == False:
+        dict_word = self.dict_mgr.search(query_word)
+        if dict_word == []:
             dbg_warning("The word haven't been found in dictionary")
-            return False
+            return []
         # searching in databas
         db_word = self.wordbank.get_word(query_word)
 
@@ -289,7 +288,7 @@ class Operation:
             # dict_word.show_meaning()
             return dict_word
         else:
-            return False
+            return []
 
     def def_search(self, args):
 
@@ -301,8 +300,8 @@ class Operation:
 
         # print(arg_dict[arg_key[0]])
         dict_word = self.__search_word(arg_dict[arg_key[0]])
-        if dict_word is False:
-            word_list = self.__fuzzy_search(arg_dict[arg_key[0]])
+        if dict_word is []:
+            word_list = self.__suggest(arg_dict[arg_key[0]])
             if word_list is False:
                 return False
             else:
@@ -314,34 +313,33 @@ class Operation:
             return True
     def search(self, args):
 
-        dict_word=None
+        dict_word_list=None
         # dbg_trace(args)
         # arg_dict = ArgParser.args_parser(args)
         arg_dict = args
         arg_key = list(arg_dict.keys())
 
         # print(arg_dict[arg_key[0]])
-        dict_word = self.__search_word(arg_dict[arg_key[1]])
-        if dict_word is False:
-            word_list = self.__fuzzy_search(arg_dict[arg_key[1]])
+        dict_word_list = self.__search_word(arg_dict[arg_key[1]])
+        if len(dict_word_list) > 0:
+            dict_word_list[0].show_meaning()
+            self.wordbank.update(dict_word_list[0].word)
+            return True
+        else:
+            word_list = self.__suggest(arg_dict[arg_key[1]])
             if word_list is False:
                 return False
             else:
                 self.__ui_print_line(word_list)
             # self.__ui_print_line('No such word.')
-        else:
-            dict_word.show_meaning()
-            self.wordbank.update(dict_word.word)
-            return True
     def fuzzy(self, args):
-        dict_word=None
         # dbg_trace(args)
         # arg_dict = ArgParser.args_parser(args)
         arg_dict = args
         arg_key = list(arg_dict.keys())
 
         # print(arg_dict[arg_key[0]])
-        word_list = self.__fuzzy_search(arg_dict[arg_key[1]])
+        word_list = self.__suggest(arg_dict[arg_key[1]])
         dbg_debug('word list: ', word_list)
         if word_list is False:
             self.__ui_print_line('No such word.')
@@ -350,8 +348,6 @@ class Operation:
             self.__ui_print_line(word_list)
             return True
     def vocabulary(self, args):
-        dict_word=None
-
         arg_dict = args
         arg_key = list(arg_dict.keys())
 
@@ -364,8 +360,6 @@ class Operation:
         return True
 
     def file(self, args):
-        dict_word=None
-
         file_name = ""
         if args['#'] == 1:
             file_name = args['1']
@@ -394,9 +388,6 @@ class Operation:
         return True
 
     def textfile(self, args):
-        dict_word=None
-
-
         input_lines = []
         self.__ui_print_line("Enter word list (press Enter on an empty line to finish):")
         while True:

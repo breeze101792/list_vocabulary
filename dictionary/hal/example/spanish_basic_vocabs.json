@@ -1,0 +1,57 @@
+[
+  {
+    "word": "correr",
+    "definitions": [
+      {
+        "part_of_speech": "verb",
+        "meaning": "to run",
+        "example": "Yo corro todos los días por la mañana. (I run every morning.)"
+      }
+    ]
+  },
+  {
+    "word": "luz",
+    "definitions": [
+      {
+        "part_of_speech": "noun",
+        "meaning": "light",
+        "example": "La luz del sol entra por la ventana. (The sunlight enters through the window.)"
+      }
+    ]
+  },
+  {
+    "word": "rápido",
+    "definitions": [
+      {
+        "part_of_speech": "adjective",
+        "meaning": "fast; quick",
+        "example": "El tren es muy rápido. (The train is very fast.)"
+      },
+      {
+        "part_of_speech": "adverb",
+        "meaning": "quickly",
+        "example": "Corre rápido o llegarás tarde. (Run quickly or you’ll be late.)"
+      }
+    ]
+  },
+  {
+    "word": "jugar",
+    "definitions": [
+      {
+        "part_of_speech": "verb",
+        "meaning": "to play",
+        "example": "Los niños juegan en el parque. (The children play in the park.)"
+      }
+    ]
+  },
+  {
+    "word": "obra",
+    "definitions": [
+      {
+        "part_of_speech": "noun",
+        "meaning": "a work; a piece (of art, literature, or construction)",
+        "example": "La obra de teatro fue muy divertida. (The play was very funny.)"
+      }
+    ]
+  }
+]

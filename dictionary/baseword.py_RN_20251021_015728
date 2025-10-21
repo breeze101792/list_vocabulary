@@ -1,0 +1,4 @@
+
+class BaseWord:
+    def show_meaning(self):
+        pass

@@ -9,62 +9,57 @@ from dictionary.dictionary import Word
 from dictionary.hal.ecdict import *
 
 from core.data import FileData
-from core.settings import Settings
 from core.wordbank import *
 from core.core import Core
+from core.config import AppConfigManager
 
 from utility.cli import CommandLineInterface as cli 
 from utility.debug import *
 
 from plugins.operation import *
 
-psettings = Settings()
-
 def main():
     parser = OptionParser(usage='Usage: pydict [options] ......')
+    parser.add_option("-l", "--lang", dest="lang",
+                    help="Set language, default english.", action="store", default = "english")
     parser.add_option("-w", "--word", dest="word",
                     help="word that you would like to get its meaning", action="store")
-    parser.add_option("-t", "--test", dest="test",
-                    help="testing function", action="store_true")
+    # parser.add_option("-t", "--test", dest="test",
+    #                 help="testing function", action="store_true")
     parser.add_option("-d", "--debug", dest="debug",
                     help="debug mode on!!", action="store_true")
 
+    # variables
     (options, args) = parser.parse_args()
-
-    # set up settings.py!
-    # mode settings
-    if options.test is not None:
-        psettings.set('mode', 'TEST')
-        # psettings.set('file_name', options.test)
-        psettings.set('debug', True)
-        psettings.set('database', 'debug.db')
-    else:
-        psettings.set('mode', "CORE")
+    appcgm = AppConfigManager()
 
     if options.debug:
         DebugSetting.debug_level = DebugLevel.MAX
         dbg_info('Enable Debug mode')
-        psettings.set('debug', True)
-        psettings.set('database', 'debug.db')
+        appcgm.enable_debug()
+    else:
+        DebugSetting.debug_level = DebugLevel.WARNING
 
-    # init
-    psettings.set('config_path', os.environ['HOME']+'/'+'.list_config'+'/')
-    os.makedirs(psettings.get('config_path'), exist_ok=True)
+    # load config
+    appcgm.set_lang(options.lang)
+    appcgm.load()
 
     # open file
     try:
-        dbg_debug("Mode: ", psettings.get('mode'))
-        if psettings.get('mode') == "CORE":
+        if not options.debug:
             pdcli = Core()
             pdcli.run()
 
-        elif psettings.get('mode') == 'TEST':
-            pdcli = Core(promote='ptest')
+        elif options.debug:
+            dbg_info("Enable debug mode.")
+            pdcli = Core(promote='pydebug')
             pdcli.run()
 
-    except (OSError, KeyboardInterrupt):
-        print(psettings.get('msg_exit'))
+    # except (OSError, KeyboardInterrupt):
+    #     print("Bye.")
     except:
         raise
+    finally:
+        appcgm.save()
 if __name__ == '__main__':
     main()

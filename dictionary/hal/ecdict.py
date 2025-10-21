@@ -1,6 +1,8 @@
-from dictionary.dictionary import Word, SWord
 from third_party.ecdict.stardict import *
 from utility.debug import *
+
+from dictionary.word import Word, SWord
+from dictionary.dictionary import Dictionary
 
 def ischinese(test_str):
     for ch in test_str:
@@ -8,11 +10,12 @@ def ischinese(test_str):
             return False
     return True
 
-class SECDict:
-    def __init__(self, dict_db="dict.db"):
-        self.dict_db = os.path.join(os.path.dirname(__file__), dict_db)
-        dbg_debug('Open dictionary: ', self.dict_db)
-        self.start_dict = StarDict(self.dict_db, False)
+class SECDict(Dictionary):
+    def __init__(self, dict_name = "SECDict", dict_file="dict.db"):
+        self.dict_name = dict_name
+        self.dict_file = os.path.join(os.path.dirname(__file__), dict_file)
+        dbg_debug('Open dictionary: ', self.dict_file)
+        self.start_dict = StarDict(self.dict_file, False)
     def __fuzzy_search(self, query_word):
         result = self.start_dict.match(query_word)
         candidate_list = list()
@@ -42,6 +45,7 @@ class SECDict:
             return False
         word = SWord()
         word.word = query_word
+        word.dict_name = self.dict_name
         word.phonetic = result['phonetic']
         word.form = result['exchange'].replace('/', ' ').replace(':', '/')
         for each_meaning in result['definition'].split('\n'): 
@@ -58,17 +62,17 @@ class SECDict:
         try:
             return self.__search(query_word)
         except KeyError:
-            return False
-    def fuzzySearch(self, query_word):
+            return None
+    def suggest(self, query_word):
         try:
             return self.__fuzzy_search(query_word)
         except KeyError:
-            return False
+            return []
 
-class ECDict:
-    def __init__(self, dict_db="dict.db"):
-        self.dict_db = os.path.join(os.path.dirname(__file__), dict_db)
-        self.start_dict = StarDict(self.dict_db, False)
+class ECDict(Dictionary):
+    def __init__(self, dict_file="dict.db"):
+        self.dict_file = os.path.join(os.path.dirname(__file__), dict_file)
+        self.start_dict = StarDict(self.dict_file, False)
     def __search(self, query_word):
         result = self.start_dict.query(query_word)
         if result == None:
@@ -102,7 +106,7 @@ class ECDict:
         try:
             return self.__search(query_word)
         except KeyError:
-            return False
+            return None
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:

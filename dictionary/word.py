@@ -14,6 +14,21 @@ class BaseWord:
     def dict_name(self,val):
         self._dict_name = val
 
+class PureWord(BaseWord):
+    def __init__(self, word = "None", dict_name = ""):
+        self.dict_name = dict_name
+        self.word = word
+        self.meaning = ""
+
+    def show_meaning(self):
+        print(self.meaning)
+    @property
+    def dict_name(self):
+        return self._dict_name
+    @dict_name.setter
+    def dict_name(self,val):
+        self._dict_name = val
+
 class SWord(BaseWord):
     def __init__(self, word = "None", dict_name = ""):
         self.dict_name = dict_name

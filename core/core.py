@@ -5,11 +5,12 @@ from dictionary.manager import Manager as DictMgr
 
 class Core(CommandLineInterface):
     def __init__(self, promote='PYD'):
-        wellcome_message = "Hi, enjoy learning a language."
+        appcgm = AppConfigManager()
+
+        wellcome_message = "Hi, enjoy learning " + appcgm.get('variable.language')
         super().__init__(promote, wellcome_message = wellcome_message)
 
         # pre init.
-        appcgm = AppConfigManager()
 
         dict_mgr = DictMgr()
 

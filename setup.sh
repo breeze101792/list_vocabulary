@@ -19,7 +19,19 @@ function generate_exc()
     local exc_file='pydict'
     local cpath=`pwd`
     echo "#!/bin/bash" > $exc_file
+    echo "pushd $cpath > /dev/null" > $exc_file
+    echo "source .venv/bin/activate" > $exc_file
     echo "python3 $cpath/pydict.py \$@" >> $exc_file
+    echo "popd > /dev/null" > $exc_file
+
+    # #!/bin/bash
+    # pushd /Users/shaowu/projects/list_vocabulary/ > /dev/null
+    #
+    # source .venv/bin/activate
+    #
+    # python3 /Users/shaowu/projects/list_vocabulary/pydict.py $@
+    #
+    # popd > /dev/null
     chmod u+x $exc_file
 }
 

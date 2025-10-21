@@ -13,11 +13,13 @@ class Core(CommandLineInterface):
 
         dict_mgr = DictMgr()
 
-        wordbank = WordBank()
-        wordbank.connect()
-        wordbank.setup()
+        self.wordbank = WordBank()
+        self.wordbank.connect()
+        self.wordbank.setup()
+        # TODO, remove it after all db updated.
+        self.wordbank.alter_table_add_columns()
 
-        operation = Operation(wordbank = wordbank)
+        operation = Operation(wordbank = self.wordbank)
 
         # setup command line
         self.history_path = os.path.join(appcgm.get_path('log'), 'command.history')
@@ -33,3 +35,8 @@ class Core(CommandLineInterface):
 
         # debug commands
         self.regist_cmd("dump_config", appcgm.dump, description="Dump all config.", group = 'debug')
+        self.regist_cmd("dump_db", self.debug_cmd_dump_db, description="Dump all table.", group = 'debug')
+    def debug_cmd_dump_db(self, args):
+        self.wordbank.dump_all()
+        return True
+

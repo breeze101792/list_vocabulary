@@ -67,7 +67,7 @@ class Operation:
             self.__ui_print_line("== Listing words. ==")
             self.__ui_print_line("== Word:{}, Familiar:{}, Count:{} ==\n".format(word, familiar,counter))
             self.search({'arg_0': 'file', 'arg_1': word})
-            self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, f:Familiar, n:New words, 0-5:Grade, ::Search):")
+            self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, f/n:Familiar, 0-5:Grade, ::Search):")
             while True:
 
                 key_press = getch()
@@ -82,20 +82,20 @@ class Operation:
                 elif key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
-                elif key_press in ("f"):
-                    familiar_index = 2
-                    if not self.wordbank.update_familiar(word, int(familiar_index)):
+                elif key_press in ("f", "n"):
+                    familiar_index = 1
+                    if not self.wordbank.update_and_mark_familiar(word):
                         self.wordbank.insert(word, int(familiar_index))
                     self.wordbank.commit()
                     word_idx += 1
                     break
-                elif key_press in ("n"):
-                    memorize_index = 1
-                    if not self.wordbank.update_familiar(word, int(memorize_index)):
-                        self.wordbank.insert(word, int(memorize_index))
-                    self.wordbank.commit()
-                    word_idx += 1
-                    break
+                # elif key_press in ("n"):
+                #     memorize_index = 1
+                #     if not self.wordbank.update_familiar(word, int(memorize_index)):
+                #         self.wordbank.insert(word, int(memorize_index))
+                #     self.wordbank.commit()
+                #     word_idx += 1
+                #     break
                 elif key_press in ("0"):
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
@@ -137,18 +137,20 @@ class Operation:
             word = word_list[word_idx]
 
             familiar = 0
+            times = 0
             word_info = self.wordbank.get_word(word)
             if word_info and len(word_info) == 2:
+                times = self.wordbank.get_word(word)[0]
                 familiar = self.wordbank.get_word(word)[1]
 
             # cls
             print('\x1bc')
             self.__ui_print_line("== Memorize words. ==")
-            self.__ui_print_line("=> Word:{}, Familiar:{}".format(word, familiar))
+            self.__ui_print_line("=> Word:{}, Familiar:{}, Times:{}".format(word, familiar, times))
             if meaning_showed is True:
                 self.search({'arg_0': 'file', 'arg_1': word})
 
-            self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, m:Show meaning, M: Default show meanings, 0-5:Grade, ::Search):")
+            self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, f/n: fimiliar, m:Show meaning, M: Default show meanings, 0-5:Grade, ::Search):")
 
             tmp_meaning_showed = meaning_showed
             while True:
@@ -172,6 +174,13 @@ class Operation:
                 elif key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
+                elif key_press in ("f", "n"):
+                    familiar_index = 1
+                    if not self.wordbank.update_and_mark_familiar(word):
+                        self.wordbank.insert(word, int(familiar_index))
+                    self.wordbank.commit()
+                    word_idx += 1
+                    break
                 elif key_press in ("0"):
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
@@ -309,7 +318,8 @@ class Operation:
             # self.__ui_print_line('No such word.')
         else:
             dict_word.show_meaning()
-            self.wordbank.update(dict_word.word)
+            if self.wordbank.insert(dict_word.word):
+                self.wordbank.commit()
             return True
     def search(self, args):
 
@@ -323,7 +333,8 @@ class Operation:
         dict_word_list = self.__search_word(arg_dict[arg_key[1]])
         if len(dict_word_list) > 0:
             dict_word_list[0].show_meaning()
-            self.wordbank.update(dict_word_list[0].word)
+            if self.wordbank.insert(dict_word_list[0].word):
+                self.wordbank.commit()
             return True
         else:
             word_list = self.__suggest(arg_dict[arg_key[1]])

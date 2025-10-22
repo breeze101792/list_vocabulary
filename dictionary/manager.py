@@ -1,8 +1,8 @@
-from utility.debug import *
 import traceback
 
 import os
 
+from utility.debug import *
 from core.config import AppConfigManager
 from dictionary.hal.ecdict import SECDict
 # from dictionary.hal.local_dict import LocalDict
@@ -66,11 +66,6 @@ class Manager:
 
         # language depends dict.
         if self.__language == "spanish":
-
-            # dict 1
-            # dict_file=os.path.join(self.__dict_root_path, 'spanish_basic_vocabs.json')
-            # tmp_dict = JsonDict(dict_name = "spanish basic vocabs", dict_file=dict_file)
-            # self.dict_list.append(tmp_dict)
             pass
         else:
             # if self.__language == "english":
@@ -80,6 +75,13 @@ class Manager:
                 self.dict_list.append(tmp_dict)
             else:
                 dbg_warning(f"SECDict file not found: {dict_file}, skipping setup.")
+
+        # NOTE. customize dictionary
+        dict_file=os.path.join(self.__dict_root_path, f"lexicon/{self.__language}_LexExpand.json")
+        if not os.path.exists(dict_file):
+            os.makedirs(os.path.dirname(dict_file), exist_ok=True)
+        tmp_dict = JsonDict(dict_name = f"{self.__language} lexicon expand", dict_file=dict_file)
+        self.dict_list.append(tmp_dict)
 
         # language specify dicts
         dict_root_path = os.path.join(self.__dict_root_path, f"stardict/{self.__language}")

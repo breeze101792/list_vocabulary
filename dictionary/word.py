@@ -139,10 +139,16 @@ class JWord(BaseWord):
         prefix_space = "  "
         print("{}, {}".format(self.word, self.dict_name))
         for each_def in self.definitions:
-            
+            print("")
             try:
                 if "part_of_speech" in each_def:
-                    print(each_def["part_of_speech"])
+                    if "gender" in each_def:
+                        print(f"{each_def['part_of_speech']} ({each_def['gender']})")
+                    else:
+                        print(each_def["part_of_speech"])
+                elif "gender" in each_def:
+                    print(each_def["gender"])
+
                 if "meaning" in each_def:
                     print(prefix_space + each_def["meaning"])
                 if "example" in each_def:

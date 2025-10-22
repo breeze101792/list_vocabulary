@@ -112,7 +112,7 @@ class Operation:
                     self.__ui_print_line("\n== Enter Dictionary ==")
                     self.__ui_print_line("=====================================")
                     word = input("Searching Word: ")
-                    self.dictionary_search(word = word, clear = False)
+                    self.dictionary_search(word = word)
                     print('\x1bc')
                     break
 
@@ -210,6 +210,9 @@ class Operation:
     # FIXME, unify function with listing_word
     def dictionary_search(self, args = None, word = "", clear = True):
         key_delay=0.01
+        dict_word_list = []
+        dict_word_idx = 0
+        previous_word = ""
 
         self.__ui_print("== Dictionary Search ==")
         while True:
@@ -220,10 +223,17 @@ class Operation:
             else:
                 print("\n")
 
-            if word != "":
-                # self.__ui_print_line("File List. Word:{}".format(word))
-                self.search({'arg_0': 'file', 'arg_1': word})
-            self.__ui_print_line("Enter a key(q:Exit, 0-5:Grade, ::Search):")
+            if word != "" and word != previous_word:
+                dict_word_list = self.__search_word(word)
+                dict_word_idx = 0
+                previous_word = word
+
+            if len(dict_word_list) > 0:
+                dict_word_list[dict_word_idx].show_meaning()
+
+                self.__ui_print_line(f"\nPage: {dict_word_idx + 1}/{len(dict_word_list)}, {dict_word_list[dict_word_idx].dict_name}")
+
+            self.__ui_print_line("Enter a key(q:Exit, l/h:select dictionary,0-5:Grade, ::Search):")
             while True:
 
                 key_press = getch()
@@ -232,6 +242,16 @@ class Operation:
                 if key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
+                elif key_press in ("h"):
+                    if dict_word_idx > 0:
+                        dict_word_idx -= 1
+
+                    break
+                elif key_press in ("l"):
+                    if dict_word_idx + 1 < len(dict_word_list):
+                        dict_word_idx += 1
+
+                    break
                 elif key_press in ("0"):
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()

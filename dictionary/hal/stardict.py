@@ -3,7 +3,7 @@ import os
 import sys
 import re
 import html
-
+from bs4 import BeautifulSoup
 
 from pystardict import Dictionary as startdict
 
@@ -12,8 +12,6 @@ from dictionary.word import JWord,PureWord
 
 class StartDict(Dictionary):
     def __init__(self, dict_name = "json dict", dict_file="./local.json"):
-        
-
         self.dict_name = dict_name
         self.dict_file=dict_file
         # if not os.path.exists(self.dict_file):
@@ -21,17 +19,38 @@ class StartDict(Dictionary):
 
         self.dict = startdict(self.dict_file)
 
+    def strip_tags(self, text: str) -> str:
+        """Remove both HTML/XML tags and decode entities."""
+
+        # Remove HTML comments <!-- ... -->
+        text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+
+        # Remove XML processing instructions <? ... ?>
+        text = re.sub(r'<\?.*?\?>', '', text, flags=re.DOTALL)
+
+        # Remove DOCTYPE declarations <!DOCTYPE ... >
+        text = re.sub(r'<!DOCTYPE.*?>', '', text, flags=re.DOTALL | re.IGNORECASE)
+
+        # Replace <br> / <br/> with newlines
+        text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+
+        # Replace CDATA sections with their contents
+        text = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', text, flags=re.DOTALL)
+
+        # Remove all other HTML/XML tags like <tag> ... </tag>
+        text = re.sub(r'<[^>]+>', '', text)
+
+        # Decode HTML entities like &nbsp; &amp; &quot;
+        text = html.unescape(text)
+
+        # Clean up spaces and newlines
+        text = re.sub(r'\s+\n', '\n', text)
+        text = re.sub(r'\n\s+', '\n', text)
+        return text.strip()
     def __search(self, query_word):
         dict_word = self.dict[query_word] # This is now a list of definition dictionaries
-        # if dict_word == "":
-        #     return None
-
-        # Replace <br> with newlines
-        text = re.sub(r'<br\s*/?>', '\n', dict_word)
-        # Remove other HTML tags
-        text = re.sub(r'<[^>]+>', '', text)
-        # Decode &xxx; entities
-        plain_text = html.unescape(text)
+        # plain_text = dict_word
+        plain_text = self.strip_tags(dict_word)
 
         # print("==================")
         # print(plain_text)

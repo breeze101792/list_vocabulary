@@ -1,3 +1,4 @@
+import re
 import traceback
 
 class BaseWord:
@@ -21,7 +22,9 @@ class PureWord(BaseWord):
         self.meaning = ""
 
     def show_meaning(self):
-        print(self.meaning)
+        # Replace any sequence of two or more newlines with exactly two newlines.
+        cleaned_meaning = re.sub(r'\n{2,}', '\n\n', self.meaning)
+        print(cleaned_meaning)
     @property
     def dict_name(self):
         return self._dict_name

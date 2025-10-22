@@ -37,6 +37,7 @@ class Core(CommandLineInterface):
         # debug commands
         self.regist_cmd("dump_config", appcgm.dump, description="Dump all config.", group = 'debug')
         self.regist_cmd("dump_db", self.debug_cmd_dump_db, description="Dump all table.", group = 'debug')
+        self.regist_cmd("dump_dict", dict_mgr.list_dictionary, description="Dump all dictionary.", group = 'debug')
     def debug_cmd_dump_db(self, args):
         self.wordbank.dump_all()
         return True

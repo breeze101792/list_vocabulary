@@ -19,6 +19,9 @@ class StartDict(Dictionary):
 
         self.dict = startdict(self.dict_file)
 
+        self.patch_syn = True
+        self.patch_ety = True
+
     def strip_tags(self, text: str) -> str:
         """Remove both HTML/XML tags and decode entities."""
 
@@ -43,18 +46,25 @@ class StartDict(Dictionary):
         # Decode HTML entities like &nbsp; &amp; &quot;
         text = html.unescape(text)
 
+        ## patch for dictionary.
+        if self.patch_syn:
+            # Ensure 'Synonyms:' starts on a new line if not already at the beginning
+            # of a line or preceded by a newline.
+            text = re.sub(r'(?<!^)(?<!\n)(Synonyms:)', r'\n\1', text)
+        if self.patch_ety:
+            text = re.sub(r'(?<!^)(?<!\n)(Etymology:)', r'\n\1', text)
+
         # Clean up spaces and newlines
         text = re.sub(r'\s+\n', '\n', text)
         text = re.sub(r'\n\s+', '\n', text)
         return text.strip()
     def __search(self, query_word):
         dict_word = self.dict[query_word] # This is now a list of definition dictionaries
-        # plain_text = dict_word
-        plain_text = self.strip_tags(dict_word)
+        # print("==================")
+        # print(dict_word)
+        # print("==================")
 
-        # print("==================")
-        # print(plain_text)
-        # print("==================")
+        plain_text = self.strip_tags(dict_word)
 
         word_obj = PureWord()
         word_obj.word = query_word

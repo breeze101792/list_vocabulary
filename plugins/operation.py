@@ -45,11 +45,22 @@ class Operation:
     def __listing_word(self, word_list = [], word_counter = []):
         word_idx = 0
         key_delay=0.01
+        dict_word_list = []
+        dict_word_idx = 0
+        previous_word = ""
+        key_press = ''
+
+        familiar_filter = -1
+
         while True:
             if word_idx > len(word_list) - 1:
                 word_idx = len(word_list) - 1
+                # hit the edge, so remove it.
+                familiar_filter = -1
             elif word_idx == -1:
                 word_idx = 0
+                # hit the edge, so remove it.
+                familiar_filter = -1
 
             word = word_list[word_idx]
             if len(word_counter) == len(word_list):
@@ -62,11 +73,32 @@ class Operation:
             if word_info and len(word_info) == 2:
                 familiar = self.wordbank.get_word(word)[1]
 
+            if familiar_filter != -1 and familiar != familiar_filter:
+                # print(familiar , familiar_filter, key_press)
+                if key_press in ("j"):
+                    word_idx += 1
+                elif key_press in ("k"):
+                    word_idx -= 1
+                else:
+                    # default go to next one.
+                    word_idx += 1
+                continue
+
             # cls
             print('\x1bc')
             self.__ui_print_line("== Listing words. ==")
             self.__ui_print_line("== Word:{}, Familiar:{}, Count:{} ==\n".format(word, familiar,counter))
-            self.search({'arg_0': 'file', 'arg_1': word})
+            # self.search({'arg_0': 'file', 'arg_1': word})
+            if word != "" and word != previous_word:
+                dict_word_idx = 0
+                dict_word_list = self.__search_word(word)
+                previous_word = word
+
+            if len(dict_word_list) > 0:
+                dict_word_list[dict_word_idx].show_meaning()
+
+                self.__ui_print_line(f"\nPage: {dict_word_idx + 1}/{len(dict_word_list)}, {dict_word_list[dict_word_idx].dict_name}")
+
             self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, f/n:Familiar, 0-5:Grade, ::Search):")
             while True:
 
@@ -79,36 +111,68 @@ class Operation:
                 elif key_press in ("k"):
                     word_idx -= 1
                     break
+                elif key_press in ("h"):
+                    if dict_word_idx > 0:
+                        dict_word_idx -= 1
+
+                    break
+                elif key_press in ("l"):
+                    if dict_word_idx + 1 < len(dict_word_list):
+                        dict_word_idx += 1
+
+                    break
                 elif key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
+                elif key_press in ("i"):
+                    # ignore known words.
+                    if familiar_filter == -1:
+                        print('Disable showing known words.')
+                        familiar_filter = 0
+                    else:
+                        print('Enable showing known words.')
+                        familiar_filter = -1
+                    break
+
                 elif key_press in ("f", "n"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     familiar_index = 1
                     if not self.wordbank.update_and_mark_familiar(word):
-                        self.wordbank.insert(word, int(familiar_index))
+                        self.wordbank.insert(word, familiar = int(familiar_index))
                     self.wordbank.commit()
                     word_idx += 1
                     break
                 # elif key_press in ("n"):
                 #     memorize_index = 1
                 #     if not self.wordbank.update_familiar(word, int(memorize_index)):
-                #         self.wordbank.insert(word, int(memorize_index))
+                #         self.wordbank.insert(word, familiar = int(memorize_index))
                 #     self.wordbank.commit()
                 #     word_idx += 1
                 #     break
                 elif key_press in ("0"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
                         # self.__ui_print_line("Remove {} from list".format(word))
                     break
 
                 elif key_press in ("1", "2", "3", "4", "5"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     if not self.wordbank.update_familiar(word, int(key_press)):
-                        self.wordbank.insert(word, int(key_press))
+                        self.wordbank.insert(word, familiar = int(key_press))
                     self.wordbank.commit()
                     # self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
                     break
-                elif key_press in (":"):
+                elif key_press in (":", ";"):
                     self.__ui_print_line("\n== Enter Dictionary ==")
                     self.__ui_print_line("=====================================")
                     word = input("Searching Word: ")
@@ -126,6 +190,10 @@ class Operation:
         word_idx = 0
         key_delay=0.01
         meaning_showed = False
+        dict_word_list = []
+        dict_word_idx = 0
+        previous_word = ""
+
         if len(word_list) == 0:
             return False
         while True:
@@ -147,8 +215,19 @@ class Operation:
             print('\x1bc')
             self.__ui_print_line("== Memorize words. ==")
             self.__ui_print_line("=> Word:{}, Familiar:{}, Times:{}".format(word, familiar, times))
+
+            if word != "" and word != previous_word:
+                dict_word_idx = 0
+                dict_word_list = self.__search_word(word)
+                previous_word = word
+
             if meaning_showed is True:
-                self.search({'arg_0': 'file', 'arg_1': word})
+                # self.search({'arg_0': 'file', 'arg_1': word})
+
+                if len(dict_word_list) > 0:
+                    dict_word_list[dict_word_idx].show_meaning()
+
+                self.__ui_print_line(f"\nPage: {dict_word_idx + 1}/{len(dict_word_list)}, {dict_word_list[dict_word_idx].dict_name}")
 
             self.__ui_print_line("Enter a key(q:Exit, j:Next, k:Previous, f/n: fimiliar, m:Show meaning, M: Default show meanings, 0-5:Grade, ::Search):")
 
@@ -163,6 +242,16 @@ class Operation:
                 elif key_press in ("k"):
                     word_idx -= 1
                     break
+                elif key_press in ("h"):
+                    if dict_word_idx > 0:
+                        dict_word_idx -= 1
+
+                    break
+                elif key_press in ("l"):
+                    if dict_word_idx + 1 < len(dict_word_list):
+                        dict_word_idx += 1
+
+                    break
                 elif key_press in ("M"):
                     meaning_showed = not meaning_showed
                     break
@@ -175,29 +264,41 @@ class Operation:
                     # ctrl + d
                     return True
                 elif key_press in ("f", "n"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     familiar_index = 1
                     if not self.wordbank.update_and_mark_familiar(word):
-                        self.wordbank.insert(word, int(familiar_index))
+                        self.wordbank.insert(word, familiar = int(familiar_index))
                     self.wordbank.commit()
                     word_idx += 1
                     break
                 elif key_press in ("0"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
                         # self.__ui_print_line("Remove {} from list".format(word))
                     break
 
                 elif key_press in ("1", "2", "3", "4", "5"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     if not self.wordbank.update_familiar(word, int(key_press)):
-                        self.wordbank.insert(word, int(key_press))
+                        self.wordbank.insert(word, familiar = int(key_press))
                     self.wordbank.commit()
                     # self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
                     break
-                elif key_press in (":"):
+                elif key_press in (":", ";"):
                     self.__ui_print_line("\n== Enter Dictionary ==")
                     self.__ui_print_line("=====================================")
                     word = input("Searching Word: ")
-                    self.dictionary_search(word = word, clear = False)
+                    self.dictionary_search(word = word)
                     print('\x1bc')
                     break
 
@@ -253,16 +354,24 @@ class Operation:
 
                     break
                 elif key_press in ("0"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     if self.wordbank.update_familiar(word, int(key_press)):
                         self.wordbank.commit()
                         self.__ui_print_line("Remove {} from list".format(word))
 
                 elif key_press in ("1", "2", "3", "4", "5"):
+                    if len(dict_word_list) == 0:
+                        dbg_warning('Word not found on the dictionary, anction ignored.')
+                        continue
+
                     if not self.wordbank.update_familiar(word, int(key_press)):
-                        self.wordbank.insert(word, int(key_press))
+                        self.wordbank.insert(word, familiar = int(key_press))
                     self.wordbank.commit()
                     self.__ui_print_line("Set {} to {}".format(word,int(key_press)))
-                elif key_press in (":"):
+                elif key_press in (":", ";"):
                     word = input("Searching Word: ")
                     break
 

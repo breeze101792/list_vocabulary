@@ -84,7 +84,7 @@ class WordBank(uDatabase):
 
         return result# .fetchall()
     def get_word(self, word):
-        query_str = "SELECT times, familiar FROM WORD WHERE word == '%s'" % word
+        query_str = "SELECT times, familiar, timestamp FROM WORD WHERE word == '%s'" % word
         result = self.execute(query_str)
         ret_data = result#.fetchall()
         if len(ret_data) != 0:

@@ -13,6 +13,8 @@ from dictionary.manager import Manager as DictMgr
 from core.wordbank import WordBank
 from core.data import FileData
 
+from plugins.page.dictpage import DictPage 
+
 class Operation:
     def __init__(self, wordbank = None):
         self.wordbank = wordbank
@@ -127,11 +129,11 @@ class Operation:
                 elif key_press in ("i"):
                     # ignore known words.
                     if familiar_filter == -1:
-                        print('Disable showing known words.')
+                        # print('Disable showing known words.')
                         familiar_filter = 0
                     else:
                         print('Enable showing known words.')
-                        familiar_filter = -1
+                        # familiar_filter = -1
                     break
 
                 elif key_press in ("f", "n"):
@@ -190,6 +192,8 @@ class Operation:
         word_idx = 0
         key_delay=0.01
         meaning_showed = False
+        flag_ignore_memorize_words = False
+
         dict_word_list = []
         dict_word_idx = 0
         previous_word = ""
@@ -199,17 +203,36 @@ class Operation:
         while True:
             if word_idx > len(word_list) - 1:
                 word_idx = len(word_list) - 1
+
+                # reset flags
+                flag_ignore_memorize_words = False
             elif word_idx == -1:
                 word_idx = 0
+
+                # reset flags
+                flag_ignore_memorize_words = False
 
             word = word_list[word_idx]
 
             familiar = 0
             times = 0
+            timestamp = 0
             word_info = self.wordbank.get_word(word)
-            if word_info and len(word_info) == 2:
+            if word_info and len(word_info) != 0:
                 times = self.wordbank.get_word(word)[0]
                 familiar = self.wordbank.get_word(word)[1]
+                timestamp = self.wordbank.get_word(word)[2]
+
+            if flag_ignore_memorize_words is True and datetime.fromtimestamp(timestamp).date() == datetime.now().date():
+                # print(familiar , familiar_filter, key_press)
+                if key_press in ("j"):
+                    word_idx += 1
+                elif key_press in ("k"):
+                    word_idx -= 1
+                else:
+                    # default go to next one.
+                    word_idx += 1
+                continue
 
             # cls
             print('\x1bc')
@@ -263,6 +286,15 @@ class Operation:
                 elif key_press in ("q", "Q") or key_press == chr(0x04):
                     # ctrl + d
                     return True
+                elif key_press in ("i"):
+                    # ignore known words.
+                    if flag_ignore_memorize_words is True:
+                        # print('Disable showing known words.')
+                        flag_ignore_memorize_words = False
+                    else:
+                        # print('Enable showing known words.')
+                        flag_ignore_memorize_words = True
+                    break
                 elif key_press in ("f", "n"):
                     if len(dict_word_list) == 0:
                         dbg_warning('Word not found on the dictionary, anction ignored.')
@@ -542,6 +574,13 @@ class Operation:
         file_data.do_word_list(sorting = False)
 
         self.__listing_word(file_data.word_list, file_data.word_counter)
+
+        return True
+
+    def pdict(self, args = None):
+        page_dict = DictPage(self.wordbank)
+
+        page_dict.run()
 
         return True
 #

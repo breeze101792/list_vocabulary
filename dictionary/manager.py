@@ -10,6 +10,8 @@ from dictionary.hal.jsondict import JsonDict
 from dictionary.hal.stardict import StartDict
 
 class Manager:
+    dict_list = []
+    def_dict = None
     def __init__(self, language = None):
         dbg_info("Dictionary Manager")
 
@@ -20,11 +22,12 @@ class Manager:
             self.__language = language
 
         self.__dict_root_path = appcgm.get_path('dictionary')
-        self.dict_list = []
-        self.def_dict = None
+        # self.dict_list = []
+        # self.def_dict = none
 
         # post init
-        self.dict_init()
+        if len(self.dict_list) == 0:
+            self.dict_init()
 
     def __dict_search_file(self, ext, dict_root_path):
         if not os.path.exists(dict_root_path):

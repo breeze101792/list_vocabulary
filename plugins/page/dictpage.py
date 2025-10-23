@@ -42,9 +42,11 @@ class DictPage(PageCommandLineInterface):
             # reset dict variables.
             self.dict_word_idx = 0
             if self.dict_word_list == []:
-                dbg_warning("The word haven't been found in dictionary")
+                # dbg_warning("The word haven't been found in dictionary")
+                self.print(f"{query_word} haven't been found in dictionary")
             # else:
             #     self.dict_word_list[self.dict_word_idx].show_meaning()
+        # self.print(len(self.dict_word_list), self.dict_word_list)
         if len(self.dict_word_list) > 0:
             self.dict_word_list[self.dict_word_idx].show_meaning()
             self.print(f"\nPage: {self.dict_word_idx + 1}/{len(self.dict_word_list)}, {self.dict_word_list[self.dict_word_idx].dict_name}")

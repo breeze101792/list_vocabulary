@@ -42,7 +42,7 @@ class SECDict(Dictionary):
     def __search(self, query_word):
         result = self.start_dict.query(query_word)
         if result == None:
-            return False
+            return None
         word = SWord()
         word.word = query_word
         word.dict_name = self.dict_name

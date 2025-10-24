@@ -22,6 +22,24 @@ class DictPage(PageCommandLineInterface):
 
         ## reg functions
         self.regist_key(["h", "l"], self.key_move, "Selecte dictionary.")
+        self.regist_cmd("search", self.cmd_search, "Search dictionary.")
+    def cmd_search(self, args):
+        query_word = ""
+        if args["#"] >= 1 :
+            query_word = args["1"]
+
+        ## Dictionary query.
+        if query_word != "":
+            self.dict_word_list = self.dict_mgr.search(query_word)
+            # reset dict variables.
+            self.dict_word_idx = 0
+            if self.dict_word_list == []:
+                # dbg_warning("The word haven't been found in dictionary")
+                self.print(f"{query_word} haven't been found in dictionary")
+
+        self.share_data.current_word = query_word
+
+        return True
     def key_move(self, key_press, data = None):
         if key_press in ("h"):
             if self.dict_word_idx > 0:
@@ -32,28 +50,9 @@ class DictPage(PageCommandLineInterface):
         return True
 
     def def_content_handler(self, data = None):
-        # query_word = input("Searching Word: ")
-        query_word = self.command_buffer
-        self.command_buffer = ""
 
-        ## Dictionary query.
-        if query_word != "":
-            self.dict_word_list = self.dict_mgr.search(query_word)
-            # reset dict variables.
-            self.dict_word_idx = 0
-            if self.dict_word_list == []:
-                # dbg_warning("The word haven't been found in dictionary")
-                self.print(f"{query_word} haven't been found in dictionary")
-            # else:
-            #     self.dict_word_list[self.dict_word_idx].show_meaning()
-        # self.print(len(self.dict_word_list), self.dict_word_list)
         if len(self.dict_word_list) > 0:
             self.dict_word_list[self.dict_word_idx].show_meaning()
             self.print(f"\nPage: {self.dict_word_idx + 1}/{len(self.dict_word_list)}, {self.dict_word_list[self.dict_word_idx].dict_name}")
-
-        self.share_data.current_word = query_word
-
-        ## Debug.
-        # self.print(f"key_move: {self.dict_word_idx}")
 
         return True

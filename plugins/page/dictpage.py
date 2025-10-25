@@ -22,6 +22,7 @@ class DictPage(PageCommandLineInterface):
 
         ## reg functions
         self.regist_key(["h", "l"], self.key_move, "Selecte dictionary.")
+        self.regist_key(["s"], self.key_cmd_search, "Search dictionary.")
         self.regist_cmd("search", self.cmd_search, "Search dictionary.")
     def cmd_search(self, args):
         query_word = ""
@@ -38,6 +39,28 @@ class DictPage(PageCommandLineInterface):
                 self.print(f"{query_word} haven't been found in dictionary")
 
         self.share_data.current_word = query_word
+
+        return True
+    def key_cmd_search(self, key_press, data = None):
+        # Save current cursor position
+        self.print("\033[s", end="")
+        self.set_cursor_visibility(True)
+
+        # Get terminal size
+        columns, rows = os.get_terminal_size()
+        # Move cursor to the last line
+        self.print(f"\033[{rows};1H", end="")
+
+        # Clear the reset of the line.
+        self.print("\033[K", end="")
+
+        func_ret = self.command_line.run_once(prefix = "search ")
+        if func_ret is False:
+            self.command_buffer = f"Execute return fail. {func_ret}"
+
+        self.set_cursor_visibility(False)
+        # Restore cursor position
+        self.print("\033[u", end="")
 
         return True
     def key_move(self, key_press, data = None):

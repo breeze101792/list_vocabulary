@@ -14,6 +14,7 @@ from core.wordbank import WordBank
 from core.data import FileData
 
 from plugins.page.dictpage import DictPage 
+from plugins.page.listpage import ListPage 
 
 class Operation:
     def __init__(self, wordbank = None):
@@ -581,6 +582,28 @@ class Operation:
         page_dict = DictPage(self.wordbank)
 
         page_dict.run()
+
+        return True
+    def ldict(self, args = None):
+        input_lines = []
+        self.__ui_print_line("Enter word list (press Enter on an empty line to finish):")
+        while True:
+            line = input()
+            if not line:
+                break
+            input_lines.append(line)
+        text = "\n".join(input_lines)
+
+        # self.__ui_print_line(text)
+        file_data = FileData(text)
+        file_data.do_word_list(sorting = False)
+
+        # self.__listing_word(file_data.word_list, file_data.word_counter)
+
+        # dbg_info(f"Len of list: {len(file_data.word_list)}", file_data.word_list)
+        list_page = ListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
+
+        list_page.run()
 
         return True
 #

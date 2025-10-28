@@ -14,7 +14,7 @@ from core.wordbank import WordBank
 from core.data import FileData
 
 from plugins.page.dictpage import DictPage 
-from plugins.page.listpage import ListPage 
+from plugins.page.listpage import ListPage, MemoryListPage
 
 class Operation:
     def __init__(self, wordbank = None):
@@ -603,6 +603,31 @@ class Operation:
         # dbg_info(f"Len of list: {len(file_data.word_list)}", file_data.word_list)
         list_page = ListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
 
+        list_page.run()
+
+        return True
+    def mdict(self, args = None):
+        word_idx = 0
+        familiar_idx = 2
+
+        familiar_target = 1
+        if args["#"] == 1 and args["1"] and args["1"].isdigit():
+            familiar_target = int(args["1"])
+        # dbg_info("Change familiar level to {}.".format(familiar_target))
+
+        word_list = []
+        for each_word in self.wordbank.quer_for_all_word():
+            if len(each_word) != 3:
+                continue
+            if each_word[familiar_idx] == familiar_target:
+                word_list.append(each_word[word_idx])
+
+        random.shuffle(word_list)
+        # dbg_info(word_list)
+
+        # self.__memorize_list(word_list)
+
+        list_page = MemoryListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.')
         list_page.run()
 
         return True

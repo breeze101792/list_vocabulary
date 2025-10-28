@@ -33,8 +33,11 @@ class Core(CommandLineInterface):
         self.regist_cmd("vocabulary", operation.vocabulary, description="Display all words in the user's vocabulary bank.")
         self.regist_cmd("file", operation.file, description="Read words from a file and start an interactive learning session.")
         self.regist_cmd("text", operation.textfile, description="Read word list from input and start an interactive learning session.")
-        self.regist_cmd("pdict", operation.pdict, description="Test page dict functoin.")
-        self.regist_cmd("ldict", operation.ldict, description="Test page to list input text functoin.")
+
+        # new ui functions
+        self.regist_cmd("pdict", operation.pdict, description="Test page dict functoin.", group='test')
+        self.regist_cmd("ldict", operation.ldict, description="Test page to list input text functoin.", group='test')
+        self.regist_cmd("mdict", operation.mdict, description="Memorize words.", group='test')
 
         # debug commands
         self.regist_cmd("dump_config", appcgm.dump, description="Dump all config.", group = 'debug')

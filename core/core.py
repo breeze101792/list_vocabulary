@@ -34,6 +34,8 @@ class Core(CommandLineInterface):
         self.regist_cmd("file", operation.file, description="Read words from a file and start an interactive learning session.")
         self.regist_cmd("text", operation.textfile, description="Read word list from input and start an interactive learning session.")
 
+        self.regist_cmd("vbuilder", operation.vocabs_builder_list, description="Read sqlite3 from koreader.", group='test')
+
         # new ui functions
         self.regist_cmd("sdict", operation.sdict, description="Search dictionary.", group='test')
         self.regist_cmd("fdict", operation.fdict, description="Read words from file and list vocabulary.", group='test')

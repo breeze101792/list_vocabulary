@@ -3,6 +3,7 @@ import random
 import threading
 import time
 import subprocess as sp
+import sqlite3
 
 from utility.utils import getch
 from utility.debug import *
@@ -635,6 +636,26 @@ class Operation:
 
         list_page.run()
 
+        return True
+    def vocabs_builder_list(self, args):
+        file_name = ""
+        if args['#'] == 1:
+            file_name = args['1']
+        else:
+            self.__ui_print_line(f"Error: No file specified.")
+            return False
+
+        # for koreader.
+        con = sqlite3.connect(file_name)
+        cur = con.cursor()
+        word_list = []
+        for word, prev_context, next_context in cur.execute("SELECT word, prev_context, next_context FROM vocabulary;"):
+            word_list.append(word)
+        con.close()
+
+        list_page = ListPage(wordlist = word_list, wordbank = self.wordbank)
+
+        list_page.run()
         return True
     def mdict(self, args = None):
         word_idx = 0

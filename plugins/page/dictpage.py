@@ -90,8 +90,8 @@ class DictPage(PageCommandLineInterface):
 
     def def_content_handler(self, data = None):
 
+        word = self.share_data.current_word
         if len(self.dict_word_list) > 0:
-            word = self.share_data.current_word
 
             familiar = 0
             times = 0
@@ -108,6 +108,8 @@ class DictPage(PageCommandLineInterface):
 
             self.dict_word_list[self.dict_word_idx].show_meaning()
             self.print(f"\nPage: {self.dict_word_idx + 1}/{len(self.dict_word_list)}, {self.dict_word_list[self.dict_word_idx].dict_name}")
+        elif word != "":
+            self.print(f"'{word}' not found\n")
         else:
             self.print(f"Empty query, you could search with key '?' for hlep.\n")
 

@@ -20,7 +20,7 @@ class ListPage(DictPage):
         # manual trigger first update.
         # self.def_content_handler()
 
-        self.regist_key(["n", "p"], self.key_walk_list, "Rate word familiarity.")
+        self.regist_key(["n", "p"], self.key_walk_list, "Walk through the word list.")
 
     def refresh(self, data = None):
         self.dict_word_list = []

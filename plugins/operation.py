@@ -578,13 +578,13 @@ class Operation:
 
         return True
 
-    def pdict(self, args = None):
+    def sdict(self, args = None):
         page_dict = DictPage(self.wordbank)
 
         page_dict.run()
 
         return True
-    def ldict(self, args = None):
+    def tdict(self, args = None):
         input_lines = []
         self.__ui_print_line("Enter word list (press Enter on an empty line to finish):")
         while True:
@@ -601,6 +601,36 @@ class Operation:
         # self.__listing_word(file_data.word_list, file_data.word_counter)
 
         # dbg_info(f"Len of list: {len(file_data.word_list)}", file_data.word_list)
+        list_page = ListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
+
+        list_page.run()
+
+        return True
+    def fdict(self, args):
+        file_name = ""
+        if args['#'] == 1:
+            file_name = args['1']
+            if file_name == "sample":
+                file_name = "./data/i_have_a_dream.txt"
+        else:
+            self.__ui_print_line(f"Error: No file specified.")
+            return False
+
+        # read file
+        if not os.path.exists(file_name):
+            self.__ui_print_line(f"Error: File '{file_name}' not found.")
+            return False
+        # file_name = "/mnt/data/workspace/code/list_vocabulary/data/i_have_a_dream.txt"
+        # self.__ui_print_line(file_name)
+        file_raw = open(file_name)
+        text = file_raw.read()
+        file_raw.close()
+
+        # self.__ui_print_line(text)
+        file_data = FileData(text)
+        file_data.do_word_list()
+
+        # self.__listing_word(file_data.word_list, file_data.word_counter)
         list_page = ListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
 
         list_page.run()

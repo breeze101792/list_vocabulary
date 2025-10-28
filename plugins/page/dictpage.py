@@ -44,20 +44,6 @@ class DictPage(PageCommandLineInterface):
         else:
             self.share_data.current_word = ""
 
-        # if query_word != "":
-        #     self.dict_word_list = self.dict_mgr.search(query_word)
-        #     # reset dict variables.
-        #     self.dict_word_idx = 0
-        #     if self.dict_word_list == []:
-        #         self.share_data.current_word = ""
-        #         # dbg_warning("The word haven't been found in dictionary")
-        #         self.print(f"{query_word} haven't been found in dictionary")
-        #         return True
-        #     else:
-        #         self.share_data.current_word = query_word
-        # else:
-        #     self.share_data.current_word = ""
-
         return True
     def key_cmd_search(self, key_press, data = None):
         # Save current cursor position
@@ -90,14 +76,6 @@ class DictPage(PageCommandLineInterface):
                 self.dict_word_idx += 1
         return True
     def key_rating(self, key_press, data = None):
-        # if key_press in ("h"):
-        #     if self.dict_word_idx > 0:
-        #         self.dict_word_idx -= 1
-        # elif key_press in ("l"):
-        #     if self.dict_word_idx + 1 < len(self.dict_word_list):
-        #         self.dict_word_idx += 1
-        # return True
-
         word = self.share_data.current_word
         if len(self.dict_word_list) == 0 or word == '':
             # dbg_warning('Word not found on the dictionary, anction ignored.')
@@ -131,6 +109,6 @@ class DictPage(PageCommandLineInterface):
             self.dict_word_list[self.dict_word_idx].show_meaning()
             self.print(f"\nPage: {self.dict_word_idx + 1}/{len(self.dict_word_list)}, {self.dict_word_list[self.dict_word_idx].dict_name}")
         else:
-            self.print(f"Empty query, you could search with key 's' for search commands.\n")
+            self.print(f"Empty query, you could search with key '?' for hlep.\n")
 
         return True

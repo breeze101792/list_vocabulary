@@ -9,9 +9,6 @@ from plugins.page.dictpage import DictPage, DictData
 class ListPage(DictPage):
     def __init__(self, wordlist, wordbank, title = "List Words"):
         super().__init__(wordbank = wordbank, title = title)
-        
-        ### control vars ###
-        self.__flag_ignore_knowing_words = True
 
         ### local vars ###
         self.word_list = wordlist
@@ -24,25 +21,22 @@ class ListPage(DictPage):
         # self.def_content_handler()
 
         self.regist_key(["n", "p"], self.key_walk_list, "Walk through the word list.")
-        self.regist_cmd("ignore", self.cmd_ignore_knowing_words, "Control to show knowing words or not.", arg_list = ["on", "off"])
+
+    def def_status_handler(self, data = None):
+        if self.dict_word_list != None and len(self.dict_word_list) > 0 and self.dict_word_idx >= 0 and self.dict_word_idx < len(self.dict_word_list):
+            status_left = f"Page: {self.dict_word_idx + 1}/{len(self.dict_word_list)}, {self.dict_word_list[self.dict_word_idx].dict_name} "
+        else:
+            status_left = f"Page: 0/0 "
+        status_middle = f"{self.share_data.current_word}"
+        status_right = f"{self.word_idx + 1}/{len(self.word_list)} "
+        # tupple (left, right)
+        return (status_left,status_middle, status_right)
 
     def refresh(self, data = None):
         self.dict_word_list = []
         return self.def_content_handler(data)
 
-    def cmd_ignore_knowing_words(self, args):
-        query_word = ""
-        if args["#"] >= 1 :
-            flag_switch = args["1"]
-            if flag_switch == 'on':
-                self.__flag_ignore_knowing_words = True
-            elif flag_switch == 'off':
-                self.__flag_ignore_knowing_words = False
-
-        # refresh words
-        return self.key_walk_list(key_press = '')
-
-    def key_walk_list_bak(self, key_press, data = None):
+    def key_walk_list(self, key_press, data = None):
         # move index
         if key_press in ("n"):
             self.word_idx += 1
@@ -61,6 +55,40 @@ class ListPage(DictPage):
 
         self.share_data.current_word = query_word
         return True
+
+class NewWordListPage(ListPage):
+    def __init__(self, wordlist, wordbank, title = "List Words"):
+        super().__init__(wordlist = wordlist, wordbank = wordbank, title = title)
+        
+        ### control vars ###
+        self.__flag_ignore_knowing_words = True
+
+        # ### local vars ###
+        # self.word_list = wordlist
+        # self.word_idx = -1
+        # # init first word.
+        # # dbg_error(f"len: {len(wordlist)}")
+        # # query_word = self.word_list[self.word_idx]
+        # self.share_data.current_word = ""
+        # # manual trigger first update.
+        # # self.def_content_handler()
+        #
+        # self.regist_key(["n", "p"], self.key_walk_list, "Walk through the word list.")
+        self.regist_cmd("ignore", self.cmd_ignore_knowing_words, "Control to show knowing words or not.", arg_list = ["on", "off"])
+
+
+    def cmd_ignore_knowing_words(self, args):
+        query_word = ""
+        if args["#"] >= 1 :
+            flag_switch = args["1"]
+            if flag_switch == 'on':
+                self.__flag_ignore_knowing_words = True
+            elif flag_switch == 'off':
+                self.__flag_ignore_knowing_words = False
+
+        # refresh words
+        return self.key_walk_list(key_press = '')
+
     def key_walk_list(self, key_press, data = None):
         # move index
         if key_press in ("n"):
@@ -119,26 +147,26 @@ class ListPage(DictPage):
         self.share_data.current_word = query_word
         return True
 
-class MemoryListPage(DictPage):
+class MemoryListPage(ListPage):
     def __init__(self, wordlist, wordbank, title = "List Words"):
-        super().__init__(wordbank = wordbank, title = title)
+        super().__init__(wordlist = wordlist, wordbank = wordbank, title = title)
         
         ### control vars ###
         self.__flag_show_meaning = False
         self.__flag_ignore_memorized_words = True
 
-        ### local vars ###
-        self.word_list = wordlist
-        self.word_idx = -1
-        # init first word.
-        # dbg_error(f"len: {len(wordlist)}")
-        # query_word = self.word_list[self.word_idx]
-        self.share_data.current_word = ""
-        # manual trigger first update.
-        # self.def_content_handler()
-
+        # ### local vars ###
+        # self.word_list = wordlist
+        # self.word_idx = -1
+        # # init first word.
+        # # dbg_error(f"len: {len(wordlist)}")
+        # # query_word = self.word_list[self.word_idx]
+        # self.share_data.current_word = ""
+        # # manual trigger first update.
+        # # self.def_content_handler()
+        #
+        # self.regist_key(["n", "p"], self.key_walk_list, "Rate word familiarity.")
         self.regist_key(["f"], self.key_familiar, "Mark word is familiar.")
-        self.regist_key(["n", "p"], self.key_walk_list, "Rate word familiarity.")
         self.regist_key(["m"], self.key_show_meanings, "Showing meanings.")
 
         self.regist_cmd("meanings", self.cmd_meaning, "Set whether to show meanings.", arg_list = ["on", "off"])
@@ -190,10 +218,6 @@ class MemoryListPage(DictPage):
         # move to next word.
         self.word_idx += 1
         return self.key_walk_list(key_press = '')
-
-    def refresh(self, data = None):
-        self.dict_word_list = []
-        return self.def_content_handler(data)
 
     def key_walk_list(self, key_press, data = None):
         # move index

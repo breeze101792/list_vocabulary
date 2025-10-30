@@ -22,8 +22,8 @@ def main():
     parser = OptionParser(usage='Usage: pydict [options] ......')
     parser.add_option("-l", "--lang", dest="lang",
                     help="Set language, default english.", action="store", default = "english")
-    parser.add_option("-w", "--word", dest="word",
-                    help="word that you would like to get its meaning", action="store")
+    # parser.add_option("-w", "--word", dest="word",
+    #                 help="word that you would like to get its meaning", action="store")
     # parser.add_option("-t", "--test", dest="test",
     #                 help="testing function", action="store_true")
     parser.add_option("-d", "--debug", dest="debug",

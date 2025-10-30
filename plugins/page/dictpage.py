@@ -20,10 +20,17 @@ class DictPage(PageCommandLineInterface):
         self.dict_word_list = []
 
         ## reg functions
-        self.regist_key(["0", "1", "2", "3", "4", "5"], self.key_rating, "Rate word familiarity.")
+        # NOTE. currently, 3~5 is reserved.
+        self.regist_key(["0", "1", "2"], self.key_rating, "Rate word familiarity.")
         self.regist_key(["h", "l"], self.key_move, "Navigate dictionary entries.")
         self.regist_key(["s"], self.key_cmd_search, "Search the dictionary.")
         self.regist_cmd("search", self.cmd_search, "Search the dictionary.")
+
+    def refresh(self, data = None):
+        self.dict_word_list = []
+        self.check_dictionary(data.current_word)
+        return self.def_content_handler(data)
+
     def check_dictionary(self, query_word):
         if query_word != "":
             self.dict_word_list = self.dict_mgr.search(query_word)
@@ -83,6 +90,10 @@ class DictPage(PageCommandLineInterface):
             # dbg_warning('Word not found on the dictionary, anction ignored.')
             return False
 
+        # currently we only set it from 0 to 2, check wordbank for related meanings.
+        if int(key_press) < 0 or int(key_press) > 3:
+            return False
+
         if not self.wordbank.update_familiar(word, int(key_press)):
             self.wordbank.insert(word, familiar = int(key_press))
         self.wordbank.commit()
@@ -122,6 +133,6 @@ class DictPage(PageCommandLineInterface):
         elif word != "":
             self.print(f"'{word}' not found\n")
         else:
-            self.print(f"Empty query, you could search with key '?' for hlep.\n")
+            self.print(f"Empty query, Enter key '?' for more help.\n")
 
         return True

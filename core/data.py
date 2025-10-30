@@ -1,6 +1,8 @@
 import collections
 from language.language import Language
 
+from core.config import AppConfigManager
+
 class FileData:
     def __init__(self, file = None):
         self.file = file
@@ -9,9 +11,11 @@ class FileData:
         self.word_list = []
         self.word_counter = []
 
+        appcgm = AppConfigManager()
+        language = appcgm.get('variable.language')
         # TODO, Make it configable by language. For now, we ignore the basic english words.
         # A list of common English words that beginners typically know (A1 level approximation).
-        self.ignore_list = Language.get_word_list('a1')
+        self.ignore_list = Language.get_word_list('a1', language = language)
     def do_sentence_list(self):
         tmp_list = self.file.replace('\n', ' ').replace('  ', ' ').splitlines()
         tmp = []

@@ -16,8 +16,12 @@ class WordBank(uDatabase):
         self.db_path=os.path.join(language_path, self.appcgm.get('variable.wordbank'))
         super().__init__(self.db_path)
 
-        # familiar settings
-        self.familiar_time_threshold = 7
+        # Familiarity settings:
+        # 0: Not relevant or not yet memorized.
+        # 1: New word; try to remember its meaning. Criteria: Recognize the word when seen (can read it).
+        # 2: When presented with a Chinese word, you can recall this word. Criteria: Can translate it.
+        # 3: You can use it in your own sentence.
+        self.familiar_time_threshold = 5
         self.familiar_level_list = [1, 2]
     def setup_tables(self):
         self.execute('''CREATE TABLE WORD

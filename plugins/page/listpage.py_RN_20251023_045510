@@ -1,9 +1,0 @@
-from utility.pcli import PageCommandLineInterface, PageShareData
-from utility.debug import *
-
-# class ListData(PageShareData):
-#     pass
-class DictPage(PageCommandLineInterface):
-    pass
-    # def __init__(self):
-    #     pass

@@ -40,7 +40,7 @@ class Core(CommandLineInterface):
         self.regist_cmd("sdict", operation.sdict, description="Search dictionary.", group='test')
         self.regist_cmd("fdict", operation.fdict, description="Read words from file and list vocabulary.", group='test')
         self.regist_cmd("tdict", operation.tdict, description="Input text and list vocabulary.", group='test')
-        self.regist_cmd("mdict", operation.mdict, description="Memorize vocabulary.", group='test')
+        self.regist_cmd("mdict", operation.mdict, description="Memorize vocabulary.", arg_list = ['familiar', 'number', 'reverse'],  group='test')
 
         # debug commands
         self.regist_cmd("dump_config", appcgm.dump, description="Dump all config.", group = 'debug')

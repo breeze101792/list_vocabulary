@@ -35,12 +35,6 @@ class Operation:
         # self.__statistic_list = [0,0,0,0,0,0]
         # self.__statistic_flag = False
 
-        ## Familiar Level
-        # 0: do not need to remember it. too easy or useless word.
-        # 1. New word need to memorize it.
-        # 2. Memorize words or easy-remembered words, but still need to review again.
-        # 3. Words that already memorized.
-
     def __ui_print(self, *args):
         print("".join(map(str,args)), end="")
     def __ui_print_line(self, *args):
@@ -662,8 +656,19 @@ class Operation:
         familiar_idx = 2
 
         familiar_target = 1
-        if args["#"] == 1 and args["1"] and args["1"].isdigit():
-            familiar_target = int(args["1"])
+        list_number = 0
+        flag_reverse = False
+
+        if 'familiar' in args:
+            familiar_target = int(args['familiar'])
+
+        if 'number' in args:
+            list_number = int(args['number'])
+
+        for each_arg in range(1, args['#'] + 1):
+            if each_arg == 'reverse':
+                flag_reverse = True
+
         # dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
@@ -672,6 +677,12 @@ class Operation:
                 continue
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])
+
+        if flag_reverse is True:
+            word_list.reverse()
+
+        if list_number != 0 and list_number < len(word_list):
+            word_list = word_list[-list_number:]
 
         random.shuffle(word_list)
         # dbg_info(word_list)

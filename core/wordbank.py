@@ -137,7 +137,7 @@ class WordBank(uDatabase):
             query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f WHERE word == '%s'" % (1, familiar, current_timestamp, word)
             result = self.execute(query_str, fetchone=True)#.fetchone()
         return True
-    def update_and_mark_familiar(self, word):
+    def update_and_mark_familiar(self, word, isFamiliar = True):
         default_times = 1
         default_familiar = 1
         # dbg_info(word)
@@ -163,10 +163,17 @@ class WordBank(uDatabase):
             #     dbg_debug("Enter to next familar" + query_str)
             #     result = self.execute(query_str, fetchone=True)#.fetchone()
             else:
-                # only add times in else
-                query_str = "UPDATE WORD SET times = %i, timestamp = %f WHERE word == '%s'" % (result[0] + 1, current_timestamp, word)
-                dbg_debug("Enter to next familar" + query_str)
-                result = self.execute(query_str, fetchone=True)#.fetchone()
+                if isFamiliar is False:
+                    decreased_times = result[0] - 1 if result[0] > 0 else 0
+                    # only add times in else
+                    query_str = "UPDATE WORD SET times = %i, timestamp = %f WHERE word == '%s'" % (decreased_times, current_timestamp, word)
+                    dbg_debug("Enter to next familar" + query_str)
+                    result = self.execute(query_str, fetchone=True)#.fetchone()
+                else:
+                    # only add times in else
+                    query_str = "UPDATE WORD SET times = %i, timestamp = %f WHERE word == '%s'" % (result[0] + 1, current_timestamp, word)
+                    dbg_debug("Enter to next familar" + query_str)
+                    result = self.execute(query_str, fetchone=True)#.fetchone()
 
         return result ##.fetchone()
 

@@ -87,7 +87,7 @@ class NewWordListPage(ListPage):
                 self.__flag_ignore_knowing_words = False
 
         # refresh words
-        return self.key_walk_list(key_press = '')
+        return self.key_walk_list(key_press = key_press)
 
     def key_walk_list(self, key_press, data = None):
         # move index
@@ -166,7 +166,7 @@ class MemoryListPage(ListPage):
         # # self.def_content_handler()
         #
         # self.regist_key(["n", "p"], self.key_walk_list, "Rate word familiarity.")
-        self.regist_key(["f"], self.key_familiar, "Mark word is familiar.")
+        self.regist_key(["f", "d"], self.key_familiar, "Mark word is familiar or not.")
         self.regist_key(["m"], self.key_show_meanings, "Showing meanings.")
 
         self.regist_cmd("meanings", self.cmd_meaning, "Set whether to show meanings.", arg_list = ["on", "off"])
@@ -183,7 +183,7 @@ class MemoryListPage(ListPage):
 
 
         # refresh words
-        return self.key_walk_list(key_press = '')
+        return self.key_walk_list(key_press = key_press)
     def cmd_ignore_meorized_words(self, args):
         query_word = ""
         if args["#"] >= 1 :
@@ -194,7 +194,7 @@ class MemoryListPage(ListPage):
                 self.__flag_ignore_memorized_words = False
 
         # refresh words
-        return self.key_walk_list(key_press = '')
+        return self.key_walk_list(key_press = key_press)
 
 
     def key_show_meanings(self, key_press, data = None):
@@ -211,22 +211,32 @@ class MemoryListPage(ListPage):
 
         word = self.share_data.current_word
         familiar_index = 1
-        if not self.wordbank.update_and_mark_familiar(word):
+        if key_press == 'f':
+            isFamiliar = True
+        else:
+            isFamiliar = False
+
+        if not self.wordbank.update_and_mark_familiar(word, isFamiliar):
             self.wordbank.insert(word, familiar = int(familiar_index))
         self.wordbank.commit()
 
         # move to next word.
         self.word_idx += 1
-        return self.key_walk_list(key_press = '')
+        return self.key_walk_list(key_press = key_press)
 
     def key_walk_list(self, key_press, data = None):
+        # check if list is empty or not.
+        if len(self.word_list) == 0:
+            dbg_warning("Now words on the list.")
+            return False
+
         # move index
         if key_press in ("n"):
             self.word_idx += 1
         elif key_press in ("p"):
             self.word_idx -= 1
 
-        while True:
+        while True and len(self.word_list) != 0:
             # check index
             if self.word_idx > len(self.word_list) - 1:
                 self.word_idx = len(self.word_list) - 1

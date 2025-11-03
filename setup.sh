@@ -4,13 +4,16 @@ function dict_init()
     local cpath=`pwd`
     local dict_file=$cpath/third_party/ecdict/stardict.7z
     local work_tmp="/tmp/pydict"
+    local target_dictionary_path="${HOME}/.config/list_vocbs/dictionary"
     mkdir $work_tmp
     pushd $work_tmp
     {
         7z x $dict_file
-        iconv -sc -f utf8 -t gb2312 stardict.csv | iconv -sc -f gb2312 -t big5 | iconv -sc -f big5 -t utf8 > stardict_t.csv
-        python3 $cpath/ecdict_convert.py dict.db stardict_t.csv
-        cp dict.db $cpath
+        # ignore convert, choose the supported terminal instead.
+        # iconv -sc -f utf8 -t gb2312 stardict.csv | iconv -sc -f gb2312 -t big5 | iconv -sc -f big5 -t utf8 > stardict_t.csv
+        cp stardict.csv stardict_t.csv
+        python3 $cpath/ecdict_convert.py secdict.db stardict_t.csv
+        cp secdict.db ${target_dictionary_path}
     }
     popd
 }

@@ -15,7 +15,7 @@ from core.wordbank import WordBank
 from core.data import FileData
 
 from plugins.page.dictpage import DictPage 
-from plugins.page.listpage import NewWordListPage, MemoryListPage
+from plugins.page.listpage import MemorizeListPage
 
 class Operation:
     def __init__(self, wordbank = None):
@@ -596,7 +596,7 @@ class Operation:
         # self.__listing_word(file_data.word_list, file_data.word_counter)
 
         # dbg_info(f"Len of list: {len(file_data.word_list)}", file_data.word_list)
-        list_page = NewWordListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
+        list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
 
         list_page.run()
 
@@ -626,7 +626,7 @@ class Operation:
         file_data.do_word_list()
 
         # self.__listing_word(file_data.word_list, file_data.word_counter)
-        list_page = NewWordListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
+        list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
 
         list_page.run()
 
@@ -647,7 +647,7 @@ class Operation:
             word_list.append(word)
         con.close()
 
-        list_page = NewWordListPage(wordlist = word_list, wordbank = self.wordbank)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank)
 
         list_page.run()
         return True
@@ -689,7 +689,7 @@ class Operation:
 
         # self.__memorize_list(word_list)
 
-        list_page = MemoryListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.')
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.')
         list_page.run()
 
         return True

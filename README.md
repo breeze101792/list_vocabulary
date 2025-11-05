@@ -6,12 +6,16 @@
 ## Features
 
 *   **Word Extraction**: Automatically extracts words from text files, filtering out common words and counting frequencies.
-*   **Interactive Dictionary Search**: Look up word definitions from integrated dictionaries (e.g., ECDICT).
+*   **Dictionary Search**: Look up word definitions from integrated dictionaries (e.g., ECDICT, SECDict, StarDict, JSON dictionaries) and provides fuzzy search suggestions.
 *   **Vocabulary Management**: Store and track words in a local SQLite database (`WordBank`), including familiarity levels, times seen, and timestamps.
-*   **Memorization Mode**: An interactive mode (`MemorizeListPage`) to review words, mark them as familiar, and progress through different familiarity levels.
+*   **Interactive Learning Modes**: Engage in interactive sessions to learn new vocabulary.
+    *   **File-based Learning**: Read words from a text file, process them, and learn new vocabulary.
+    *   **Text Input Learning**: Input text directly and learn words from it.
+    *   **Memorization Mode**: An interactive mode (`MemorizeListPage`) to review words, mark them as familiar, and progress through different familiarity levels, with options to show/hide meanings and ignore already memorized words for the current day.
 *   **Custom Word Lists**: Process words from user-provided text input or SQLite vocabulary builder files (e.g., from Koreader).
+*   **Koreader Integration**: Import vocabulary from Koreader's SQLite database.
 *   **Configurable Language Support**: Supports different languages for word filtering.
-*   **Debug Mode**: Provides detailed logging for development and troubleshooting.
+*   **Debug Mode**: Provides detailed logging for development and troubleshooting, and commands to dump configuration, database contents, and loaded dictionaries.
 
 ## Core Concepts
 

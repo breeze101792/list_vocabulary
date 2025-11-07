@@ -56,7 +56,7 @@ class ListPage(DictPage):
         return True
 
 class MemorizeListPage(ListPage):
-    def __init__(self, wordlist, wordbank, title = "List Words"):
+    def __init__(self, wordlist, wordbank, title = "List Words", meaning = False, ignore = True):
         super().__init__(wordlist = wordlist, wordbank = wordbank, title = title)
         
         ### control vars ###

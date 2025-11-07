@@ -653,21 +653,32 @@ class Operation:
         return True
     def mdict(self, args = None):
         word_idx = 0
+        times_idx = 1
         familiar_idx = 2
 
         familiar_target = 1
+        times_target = -1
         list_number = 0
         flag_reverse = False
+        flag_meaning = False
+        flag_ignore = True
+
+        for each_idx in range(1, args['#'] + 1):
+            if args[str(each_idx)] == 'reverse':
+                flag_reverse = True
+            if args[str(each_idx)] == 'forget':
+                flag_meaning = True
+                flag_ignore = False
+                times_target = 0
 
         if 'familiar' in args:
             familiar_target = int(args['familiar'])
 
+        if 'times' in args:
+            times_target = int(args['times'])
+
         if 'number' in args:
             list_number = int(args['number'])
-
-        for each_arg in range(1, args['#'] + 1):
-            if each_arg == 'reverse':
-                flag_reverse = True
 
         # dbg_info("Change familiar level to {}.".format(familiar_target))
 
@@ -675,6 +686,9 @@ class Operation:
         for each_word in self.wordbank.quer_for_all_word():
             if len(each_word) != 3:
                 continue
+            if times_target != -1 and each_word[times_idx] > times_target:
+                continue
+
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])
 
@@ -689,7 +703,7 @@ class Operation:
 
         # self.__memorize_list(word_list)
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.')
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', meaning = flag_meaning, ignore = flag_ignore)
         list_page.run()
 
         return True

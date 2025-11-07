@@ -24,6 +24,10 @@ class WordBank(uDatabase):
         self.familiar_time_threshold = 5
         self.familiar_level_list = [1, 2]
     def setup_tables(self):
+        # TODO, consider those in the future.
+        # Add more columns:
+        # 1. column for remember those forgeting words today. bool, could use with timestamp?
+        # 2. column for remember those beautiful words. bool?
         self.execute('''CREATE TABLE WORD
                         (word text, times real, familiar real, create_time text, timestamp real)''')
 

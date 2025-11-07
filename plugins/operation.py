@@ -661,14 +661,14 @@ class Operation:
         list_number = 0
         flag_reverse = False
         flag_meaning = False
-        flag_ignore = True
+        flag_reviewed_word = True
 
         for each_idx in range(1, args['#'] + 1):
             if args[str(each_idx)] == 'reverse':
                 flag_reverse = True
             if args[str(each_idx)] == 'forget':
                 flag_meaning = True
-                flag_ignore = False
+                flag_reviewed_word = False
                 times_target = 0
 
         if 'familiar' in args:
@@ -703,7 +703,7 @@ class Operation:
 
         # self.__memorize_list(word_list)
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', meaning = flag_meaning, ignore = flag_ignore)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', reviewed = flag_reviewed_word)
         list_page.run()
 
         return True

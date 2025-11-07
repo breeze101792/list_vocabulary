@@ -47,7 +47,7 @@ def main():
     # open file
     try:
         if not options.debug:
-            pdcli = Core()
+            pdcli = Core(promote = f"{options.lang.lower()}@pyd ")
             pdcli.run()
 
         elif options.debug:

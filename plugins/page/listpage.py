@@ -56,12 +56,13 @@ class ListPage(DictPage):
         return True
 
 class MemorizeListPage(ListPage):
-    def __init__(self, wordlist, wordbank, title = "List Words", meaning = False, ignore = True):
+    def __init__(self, wordlist, wordbank, title = "List Words", meaning = True, reviewed = True, known = True):
         super().__init__(wordlist = wordlist, wordbank = wordbank, title = title)
         
         ### control vars ###
-        self.__flag_show_meaning = False
-        self.__flag_ignore_memorized_words = True
+        self.__flag_show_meaning = meaning
+        self.__flag_ignore_reviewed_words = reviewed
+        self.__flag_ignore_known_words = known
 
         # ### local vars ###
         # self.word_list = wordlist
@@ -79,7 +80,7 @@ class MemorizeListPage(ListPage):
         self.regist_key(["m", "g"], self.key_show_meanings, "Showing meanings.")
 
         self.regist_cmd("meanings", self.cmd_meaning, "Set whether to show meanings.", arg_list = ["on", "off"])
-        self.regist_cmd("ignore", self.cmd_ignore_meorized_words, "Control to show memorized words or not.", arg_list = ["on", "off"])
+        self.regist_cmd("ignore", self.cmd_ignore_words, "Control to show memorized words or not.", arg_list = ['known', 'reviewed'])
 
     def cmd_meaning(self, args):
         query_word = ""
@@ -90,18 +91,25 @@ class MemorizeListPage(ListPage):
             elif flag_switch == 'off':
                 self.__flag_show_meaning = False
 
-
         # refresh words
         self.key_walk_list(key_press = "")
         return True
-    def cmd_ignore_meorized_words(self, args):
+    def cmd_ignore_words(self, args):
         query_word = ""
-        if args["#"] >= 1 :
-            flag_switch = args["1"]
+
+        if 'known' in args:
+            flag_switch = args['known']
             if flag_switch == 'on':
-                self.__flag_ignore_memorized_words = True
+                self.__flag_ignore_known_words = True
             elif flag_switch == 'off':
-                self.__flag_ignore_memorized_words = False
+                self.__flag_ignore_known_words = False
+
+        if 'reviewed' in args:
+            flag_switch = args['reviewed']
+            if flag_switch == 'on':
+                self.__flag_ignore_reviewed_words = True
+            elif flag_switch == 'off':
+                self.__flag_ignore_reviewed_words = False
 
         # refresh words
         self.key_walk_list(key_press = "")
@@ -168,7 +176,14 @@ class MemorizeListPage(ListPage):
                 familiar = self.wordbank.get_word(word)[1]
                 timestamp = self.wordbank.get_word(word)[2]
 
-            if self.__flag_ignore_memorized_words is True and datetime.fromtimestamp(timestamp).date() == datetime.now().date():
+            dbg_error(word_info)
+            flag_continue = False
+            if self.__flag_ignore_known_words is True and word_info is not False and len(word_info) != 0:
+                flag_continue = True
+            if self.__flag_ignore_reviewed_words is True and datetime.fromtimestamp(timestamp).date() == datetime.now().date():
+                flag_continue = True
+
+            if flag_continue is True:
                 # print(familiar , familiar_filter, key_press)
                 if key_press == "n":
                     self.word_idx += 1

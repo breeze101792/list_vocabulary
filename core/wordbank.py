@@ -17,10 +17,12 @@ class WordBank(uDatabase):
         super().__init__(self.db_path)
 
         # Familiarity settings:
-        # 0: Not relevant or not yet memorized.
+        # TODO, still working on defining those levels.
+        # 0: Not relevant or not yet memorized; the word will be ignored.
         # 1: New word; try to remember its meaning. Criteria: Recognize the word when seen (can read it).
-        # 2: When presented with a Chinese word, you can recall this word. Criteria: Can translate it.
-        # 3: You can use it in your own sentence.
+        # 2: Transition new word to long-term memory; try to remember its meaning. Criteria: Recognize the word when seen (can read it).
+        # 3: When presented with a Chinese word, you can recall this word. Criteria: Can translate it.
+        # 4: You can use it in your own sentence.
         self.familiar_time_threshold = 5
         self.familiar_level_list = [1, 2]
     def setup_tables(self):
@@ -156,7 +158,7 @@ class WordBank(uDatabase):
             return self.insert(word, default_times, default_familiar)
         elif datetime.fromtimestamp(result[2]).date() != datetime.now().date():
             # print(datetime.fromtimestamp(result[2]).date(),  datetime.now().date())
-            if result[1] in self.familiar_level_list and result[0] + 1  >= self.familiar_time_threshold:
+            if result[1] in self.familiar_level_list and result[0] + 1  > self.familiar_time_threshold:
                 # to next level.
                 query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f WHERE word == '%s'" % (default_times, result[1] + 1, current_timestamp, word)
                 dbg_debug("Enter to next familar" + query_str)

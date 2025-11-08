@@ -1,6 +1,8 @@
 from enum import Enum, auto
 import random
 import threading
+import traceback
+import json
 import time
 import subprocess as sp
 import sqlite3
@@ -735,6 +737,50 @@ class Operation:
         list_page.run()
 
         return True
+    def cmd_lesson_list(self, args = None):
+        file_name = ""
+        if args['#'] == 1:
+            file_name = args['1']
+            if file_name == "sample":
+                file_name = "./data/i_have_a_dream.txt"
+        else:
+            self.__ui_print_line(f"Error: No file specified.")
+            return False
+
+        # read file
+        if not os.path.exists(file_name):
+            self.__ui_print_line(f"Error: File '{file_name}' not found.")
+            return False
+
+        try:
+            # setup customize dictionary
+            self.dict_mgr.word_list_dict.cleanAll()
+            self.dict_mgr.word_list_dict.buildDict(file_name)
+
+            # # read word list.
+            # file_raw = open(file_name)
+            # text = file_raw.read()
+            # file_raw.close()
+            lesson_word_list = []
+            with open(file_name, "r", encoding="utf-8") as jfile:
+                # Load the entire JSON file as a list of entries
+                data = json.load(jfile)
+                for entry in data:
+                    word = entry["word"]
+                    lesson_word_list.append(word)
+
+            list_page = MemorizeListPage(wordlist = lesson_word_list, wordbank = self.wordbank, title = 'Lesson Words.', meaning = True)
+            list_page.run()
+
+        except Exception as e:
+            dbg_error(e)
+
+            traceback_output = traceback.format_exc()
+            dbg_error(traceback_output)
+        finally:
+            self.dict_mgr.word_list_dict.cleanAll()
+        return True
+
 #
 # class EUIMode(Enum):
 #     WORD = auto()

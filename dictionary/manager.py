@@ -10,6 +10,7 @@ from dictionary.hal.jsondict import JsonDict
 from dictionary.hal.stardict import StartDict
 
 class Manager:
+    word_list_dict = None
     dict_list = []
     def_dict = None
     def __init__(self, language = None):
@@ -22,11 +23,11 @@ class Manager:
             self.__language = language
 
         self.__dict_root_path = appcgm.get_path('dictionary')
-        # self.dict_list = []
+        # Manager.dict_list = []
         # self.def_dict = none
 
         # post init
-        if len(self.dict_list) == 0:
+        if len(Manager.dict_list) == 0:
             self.dict_init()
 
     def __dict_search_file(self, ext, dict_root_path):
@@ -55,7 +56,7 @@ class Manager:
                 dbg_info(f"dictionary: {book_name}@{dict_file}")
 
                 tmp_dict = StartDict(dict_name = book_name, dict_file=dict_file)
-                self.dict_list.append(tmp_dict)
+                Manager.dict_list.append(tmp_dict)
             except Exception as e:
                 dbg_warning(e)
 
@@ -64,8 +65,13 @@ class Manager:
 
     def dict_init(self):
         # reset before init.
-        self.dict_list = []
-        self.def_dict = None
+        Manager.dict_list = []
+        Manager.def_dict = None
+
+        if Manager.word_list_dict is None:
+            # NOTE. word list dictionary, don't init at the begining
+            Manager.word_list_dict = JsonDict(dict_name = f"{self.__language} lesson word list.")
+        Manager.dict_list.append(Manager.word_list_dict)
 
         # language depends dict.
         if self.__language == "spanish":
@@ -75,7 +81,7 @@ class Manager:
             dict_file=os.path.join(self.__dict_root_path, 'secdict.db')
             if os.path.exists(dict_file):
                 tmp_dict = SECDict(dict_file=dict_file)
-                self.dict_list.append(tmp_dict)
+                Manager.dict_list.append(tmp_dict)
             else:
                 dbg_warning(f"SECDict file not found: {dict_file}, skipping setup.")
 
@@ -84,7 +90,7 @@ class Manager:
         if not os.path.exists(dict_file):
             os.makedirs(os.path.dirname(dict_file), exist_ok=True)
         tmp_dict = JsonDict(dict_name = f"{self.__language} lexicon expand", dict_file=dict_file)
-        self.dict_list.append(tmp_dict)
+        Manager.dict_list.append(tmp_dict)
 
         # language specify dicts
         dict_root_path = os.path.join(self.__dict_root_path, f"stardict/{self.__language}")
@@ -94,16 +100,16 @@ class Manager:
         dict_root_path = os.path.join(self.__dict_root_path, f"stardict/all")
         self.__dict_init_stardict(root_path = dict_root_path)
 
-        self.def_dict = self.dict_list[0]
+        Manager.def_dict = Manager.dict_list[0]
     def list_dictionary(self, args = None):
-        for each_dict in self.dict_list:
+        for each_dict in Manager.dict_list:
             each_dict.info()
             # dbg_print(f"Dictionary: {each_dict.dict_name}")
         return True
     def search(self, query_word):
         dict_word_list = []
 
-        for each_dict in self.dict_list:
+        for each_dict in Manager.dict_list:
             # return word class list of dictionary.
             tmp_dict_word = each_dict.search(query_word)
             if tmp_dict_word is not None:
@@ -113,5 +119,5 @@ class Manager:
 
     def suggest(self, query_word):
         # return a list of possiable words.
-        suggest_list = self.def_dict.suggest(query_word = query_word)
+        suggest_list = Manager.def_dict.suggest(query_word = query_word)
         return suggest_list

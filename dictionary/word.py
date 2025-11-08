@@ -151,8 +151,12 @@ class JWord(BaseWord):
 
                 if "meaning" in each_def:
                     print(prefix_space + each_def["meaning"])
+                if "phrase" in each_def:
+                    print(prefix_space + each_def["phrase"])
                 if "example" in each_def:
                     print(prefix_space + " " + each_def["example"])
+                if "notes" in each_def:
+                    print(prefix_space + " " + each_def["notes"])
             except Exception as e:
                 dbg_error(e)
             

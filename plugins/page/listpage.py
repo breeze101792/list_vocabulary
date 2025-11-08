@@ -1,5 +1,6 @@
 
 import time
+import random
 from utility.pcli import PageCommandLineInterface, PageShareData
 from utility.debug import *
 from dictionary.manager import Manager as DictMgr
@@ -11,6 +12,7 @@ class ListPage(DictPage):
         super().__init__(wordbank = wordbank, title = title)
 
         ### local vars ###
+        self.original_word_list = wordlist
         self.word_list = wordlist
         self.word_idx = -1
         # init first word.
@@ -21,6 +23,19 @@ class ListPage(DictPage):
         # self.def_content_handler()
 
         self.regist_key(["n", "p"], self.key_walk_list, "Walk through the word list.")
+
+        self.regist_cmd("shuffle", self.cmd_shuffle, "Shuffle word list.")
+
+    def cmd_shuffle(self, args):
+        self.word_idx = -1
+        self.share_data.current_word = ""
+        random.shuffle(self.word_list)
+        self.share_data.current_word = ""
+
+        # refresh words
+        # self.key_walk_list(key_press = "")
+        self.def_content_handler(self.share_data)
+        return True
 
     def def_status_handler(self, data = None):
         if self.dict_word_list != None and len(self.dict_word_list) > 0 and self.dict_word_idx >= 0 and self.dict_word_idx < len(self.dict_word_list):

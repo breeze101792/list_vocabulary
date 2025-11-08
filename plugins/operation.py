@@ -421,7 +421,7 @@ class Operation:
 
         word_list = []
         for each_word in self.wordbank.quer_for_all_word():
-            if len(each_word) != 3:
+            if len(each_word) < 3:
                 continue
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])
@@ -661,15 +661,12 @@ class Operation:
         list_number = 0
         flag_reverse = False
         flag_meaning = False
-        flag_reviewed_word = True
+        # default not show reviewed words.
+        flag_reviewed_word = False
 
         for each_idx in range(1, args['#'] + 1):
             if args[str(each_idx)] == 'reverse':
                 flag_reverse = True
-            if args[str(each_idx)] == 'forget':
-                flag_meaning = True
-                flag_reviewed_word = False
-                times_target = 0
 
         if 'familiar' in args:
             familiar_target = int(args['familiar'])
@@ -683,8 +680,8 @@ class Operation:
         # dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
-        for each_word in self.wordbank.quer_for_all_word():
-            if len(each_word) != 3:
+        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target):
+            if len(each_word) < 3:
                 continue
             if times_target != -1 and each_word[times_idx] > times_target:
                 continue
@@ -703,7 +700,38 @@ class Operation:
 
         # self.__memorize_list(word_list)
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', reviewed = flag_reviewed_word)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', reviewed = flag_reviewed_word, meaning = False)
+        list_page.run()
+
+        return True
+    def forgotten(self, args = None):
+        word_idx = 0
+        times_idx = 1
+        familiar_idx = 2
+        forgotten_idx = 3
+
+        familiar_target = 1
+        list_number = 0
+
+        if 'familiar' in args:
+            familiar_target = int(args['familiar'])
+
+        if 'number' in args:
+            list_number = int(args['number'])
+
+        word_list = []
+        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, forgotten = True):
+            if len(each_word) < 3:
+                continue
+            if each_word[familiar_idx] == familiar_target:
+                word_list.append(each_word[word_idx])
+
+        if list_number != 0 and list_number < len(word_list):
+            word_list = word_list[-list_number:]
+
+        random.shuffle(word_list)
+
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = False)
         list_page.run()
 
         return True

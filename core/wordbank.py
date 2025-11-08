@@ -31,12 +31,12 @@ class WordBank(uDatabase):
         # 1. column for remember those forgeting words today. bool, could use with timestamp?
         # 2. column for remember those beautiful words. bool?
         self.execute('''CREATE TABLE WORD
-                        (word text, times real, familiar real, create_time text, timestamp real)''')
+                        (word text, times real, familiar real, create_time text, timestamp real, forgotten real)''')
 
         # Insert a row of data with current time and timestamp
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         current_timestamp = datetime.now().timestamp()
-        self.execute("INSERT INTO Word VALUES ('a',0,0,'%s',%f)" % (current_time, current_timestamp))
+        self.execute("INSERT INTO Word VALUES ('a',0,0,'%s',%f,0)" % (current_time, current_timestamp))
         return True
 
     # def setup(self):
@@ -76,17 +76,32 @@ class WordBank(uDatabase):
             self.execute("UPDATE WORD SET timestamp = %f WHERE timestamp IS NULL" % current_timestamp)
             dbg_info("Added 'timestamp' column to WORD table.")
 
+        if 'forgotten' not in columns:
+            self.execute("ALTER TABLE WORD ADD COLUMN forgotten real")
+            # Populate existing rows with a default value (0 for False)
+            self.execute("UPDATE WORD SET forgotten = 0 WHERE forgotten IS NULL")
+            dbg_info("Added 'forgotten' column to WORD table.")
+
         self.commit()
         return True
 
-    def quer_for_all_word(self, times = None, familiar = None):
-        query_str = """SELECT word, times, familiar FROM WORD"""
-        if times is not None and familiar is not None:
-            query_str = "%s WHERE times == %i AND familiar == %i" % (query_str, times, familiar)
-        elif familiar is not None:
-            query_str = "%s WHERE familiar == %i" % (query_str, familiar)
-        elif familiar is not None:
-            query_str = "%s WHERE times == %i" % (query_str, times)
+    def quer_for_all_word(self, times = None, familiar = None, forgotten = None):
+        query_str = """SELECT word, times, familiar, forgotten FROM WORD"""
+        conditions = []
+        if times is not None:
+            conditions.append(f"times == {times}")
+        if familiar is not None:
+            conditions.append(f"familiar == {familiar}")
+        if forgotten is not None:
+            # SQLite stores booleans as 0 for False and 1 for True
+            forgotten_val = 1 if forgotten else 0
+            conditions.append(f"forgotten == {forgotten_val}")
+            # If forgotten is set, also check if the timestamp is today
+            today_date_str = datetime.now().strftime("%Y-%m-%d")
+            conditions.append(f"DATE(timestamp, 'unixepoch') == '{today_date_str}'")
+
+        if conditions:
+            query_str += " WHERE " + " AND ".join(conditions)
 
         dbg_debug(query_str)
         result = self.execute(query_str)
@@ -115,7 +130,7 @@ class WordBank(uDatabase):
     #         dbg_debug(query_str)
     #         result = self.execute(query_str, fetchone=True)#.fetchone()
     #     return result ##.fetchone()
-    def insert(self, word, times = 1, familiar = 0):
+    def insert(self, word, times = 1, familiar = 0, forgotten = 0):
         query_str = "SELECT word FROM WORD WHERE word == '%s'" % word
         # print(query_str)
 
@@ -127,7 +142,7 @@ class WordBank(uDatabase):
         else:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             current_timestamp = datetime.now().timestamp()
-            query_str = "INSERT INTO WORD (word, times, familiar, create_time, timestamp) VALUES ('%s', %i, %i, '%s', %f)" % (word, times, familiar, current_time, current_timestamp)
+            query_str = "INSERT INTO WORD (word, times, familiar, create_time, timestamp, forgotten) VALUES ('%s', %i, %i, '%s', %f, %i)" % (word, times, familiar, current_time, current_timestamp, forgotten)
             # print(query_str)
             result = self.execute(query_str, fetchone=True)#.fetchone()
         return result ##.fetchone()
@@ -143,9 +158,11 @@ class WordBank(uDatabase):
             query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f WHERE word == '%s'" % (1, familiar, current_timestamp, word)
             result = self.execute(query_str, fetchone=True)#.fetchone()
         return True
-    def update_and_mark_familiar(self, word, isFamiliar = True):
+    def update_and_mark_familiar(self, word, forgotten = False):
         default_times = 1
         default_familiar = 1
+        forgotten_val = 1 if forgotten is True else 0
+
         # dbg_info(word)
         query_str = "SELECT times, familiar, timestamp FROM WORD WHERE word == '%s'" % word
 
@@ -155,29 +172,24 @@ class WordBank(uDatabase):
 
         if result is None:
             # dbg_info(word, 'Not in ')
-            return self.insert(word, default_times, default_familiar)
+            return self.insert(word, default_times, default_familiar, forgotten_val)
         elif datetime.fromtimestamp(result[2]).date() != datetime.now().date():
             # print(datetime.fromtimestamp(result[2]).date(),  datetime.now().date())
             if result[1] in self.familiar_level_list and result[0] + 1  > self.familiar_time_threshold:
                 # to next level.
-                query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f WHERE word == '%s'" % (default_times, result[1] + 1, current_timestamp, word)
+                query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (default_times, result[1] + 1, current_timestamp, forgotten_val, word)
                 dbg_debug("Enter to next familar" + query_str)
                 result = self.execute(query_str, fetchone=True)#.fetchone()
-            # elif result[0] + 1  == self.familiar_time_threshold:
-            #     # only add times in else
-            #     query_str = "UPDATE WORD SET times = %i, familiar = %i WHERE word == '%s'" % (result[0] + 1, result[1], word)
-            #     dbg_debug("Enter to next familar" + query_str)
-            #     result = self.execute(query_str, fetchone=True)#.fetchone()
             else:
-                if isFamiliar is False:
+                if forgotten is True:
                     decreased_times = result[0] - 1 if result[0] > 0 else 0
                     # only add times in else
-                    query_str = "UPDATE WORD SET times = %i, timestamp = %f WHERE word == '%s'" % (decreased_times, current_timestamp, word)
+                    query_str = "UPDATE WORD SET times = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (decreased_times, current_timestamp, forgotten_val, word)
                     dbg_debug("Enter to next familar" + query_str)
                     result = self.execute(query_str, fetchone=True)#.fetchone()
                 else:
                     # only add times in else
-                    query_str = "UPDATE WORD SET times = %i, timestamp = %f WHERE word == '%s'" % (result[0] + 1, current_timestamp, word)
+                    query_str = "UPDATE WORD SET times = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (result[0] + 1, current_timestamp, forgotten_val, word)
                     dbg_debug("Enter to next familar" + query_str)
                     result = self.execute(query_str, fetchone=True)#.fetchone()
 

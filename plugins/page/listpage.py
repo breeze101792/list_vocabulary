@@ -61,8 +61,8 @@ class MemorizeListPage(ListPage):
         
         ### control vars ###
         self.__flag_show_meaning = meaning
-        self.__flag_ignore_reviewed_words = reviewed
-        self.__flag_ignore_known_words = known
+        self.__flag_ignore_reviewed_words = not reviewed
+        self.__flag_ignore_known_words = not known
 
         # ### local vars ###
         # self.word_list = wordlist
@@ -130,11 +130,11 @@ class MemorizeListPage(ListPage):
         word = self.share_data.current_word
         familiar_index = 1
         if key_press == 'f':
-            isFamiliar = True
+            forgotten = False
         else:
-            isFamiliar = False
+            forgotten = True
 
-        if not self.wordbank.update_and_mark_familiar(word, isFamiliar):
+        if not self.wordbank.update_and_mark_familiar(word, forgotten):
             self.wordbank.insert(word, familiar = int(familiar_index))
         self.wordbank.commit()
 

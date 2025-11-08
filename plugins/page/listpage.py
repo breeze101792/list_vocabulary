@@ -80,7 +80,8 @@ class MemorizeListPage(ListPage):
         self.regist_key(["m", "g"], self.key_show_meanings, "Showing meanings.")
 
         self.regist_cmd("meanings", self.cmd_meaning, "Set whether to show meanings.", arg_list = ["on", "off"])
-        self.regist_cmd("ignore", self.cmd_ignore_words, "Control to show memorized words or not.", arg_list = ['known', 'reviewed'])
+        self.regist_cmd("ignore", self.cmd_ignore_words, "Control whether to ignore known or reviewed words.", arg_list = ['known', 'reviewed'])
+        self.regist_cmd("display", self.cmd_display_words, "Control whether to display known or reviewed words.", arg_list = ['known', 'reviewed'])
 
     def cmd_meaning(self, args):
         query_word = ""
@@ -90,6 +91,26 @@ class MemorizeListPage(ListPage):
                 self.__flag_show_meaning = True
             elif flag_switch == 'off':
                 self.__flag_show_meaning = False
+
+        # refresh words
+        self.key_walk_list(key_press = "")
+        return True
+    def cmd_display_words(self, args):
+        query_word = ""
+
+        if 'known' in args:
+            flag_switch = args['known']
+            if flag_switch == 'on':
+                self.__flag_ignore_known_words = False
+            elif flag_switch == 'off':
+                self.__flag_ignore_known_words = True
+
+        if 'reviewed' in args:
+            flag_switch = args['reviewed']
+            if flag_switch == 'on':
+                self.__flag_ignore_reviewed_words = False
+            elif flag_switch == 'off':
+                self.__flag_ignore_reviewed_words = True
 
         # refresh words
         self.key_walk_list(key_press = "")

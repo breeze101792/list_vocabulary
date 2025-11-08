@@ -18,7 +18,7 @@ class WordBank(uDatabase):
 
         # Familiarity settings:
         # TODO, still working on defining those levels.
-        # 0: Not relevant or not yet memorized; the word will be ignored.
+        # 0: Not relevant or not yet memorized; the word will be ignored for now.
         # 1: New word; try to remember its meaning. Criteria: Recognize the word when seen (can read it).
         # 2: Transition new word to long-term memory; try to remember its meaning. Criteria: Recognize the word when seen (can read it).
         # 3: When presented with a Chinese word, you can recall this word. Criteria: Can translate it.

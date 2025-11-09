@@ -2,6 +2,8 @@ from utility.pcli import PageCommandLineInterface, PageShareData
 from utility.debug import *
 from dictionary.manager import Manager as DictMgr
 
+from plugins.llm import LLM
+
 class DictData(PageShareData):
     def __init__(self):
         self.current_word = ''
@@ -24,11 +26,13 @@ class DictPage(PageCommandLineInterface):
         self.regist_key(["0", "1", "2"], self.key_rating, "Rate word familiarity.")
         self.regist_key(["h", "l"], self.key_move, "Navigate dictionary entries.")
         self.regist_key(["s"], self.key_cmd_search, "Search the dictionary.")
+        self.regist_key(["L"], self.key_cmd_llm, "Search the dictionary with LLM.")
         self.regist_cmd("search", self.cmd_search, "Search the dictionary.")
+        self.regist_cmd("llm", self.cmd_llm, "Search the dictionary with llm.")
 
     def refresh(self, data = None):
-        self.dict_word_list = []
-        self.check_dictionary(data.current_word)
+        # self.dict_word_list = []
+        # self.check_dictionary(data.current_word)
         return self.def_content_handler(data)
 
     def check_dictionary(self, query_word):
@@ -45,16 +49,25 @@ class DictPage(PageCommandLineInterface):
         if args["#"] >= 1 :
             query_word = args["1"]
 
-        ## Dictionary query.
-        # if self.check_dictionary(query_word):
-        #     self.share_data.current_word = query_word
-        # else:
-        #     self.share_data.current_word = ""
         self.check_dictionary(query_word)
         self.share_data.current_word = query_word
 
         return True
-    def key_cmd_search(self, key_press, data = None):
+    def cmd_llm(self, args):
+        query_word = ""
+        if args["#"] >= 1 :
+            query_word = args["1"]
+        else:
+            query_word = self.share_data.current_word
+
+        self.dict_word_idx = 0
+        llm = LLM()
+        self.dict_word_list = [llm.openai_dict(query_word)]
+
+        self.share_data.current_word = query_word
+
+        return True
+    def key_cmd_prefix(self, key_press, data = None, prefix = ""):
         # Save current cursor position
         self.print("\033[s", end="")
         self.set_cursor_visibility(True)
@@ -67,7 +80,7 @@ class DictPage(PageCommandLineInterface):
         # Clear the reset of the line.
         self.print("\033[K", end="")
 
-        func_ret = self.command_line.run_once(prefix = "search ")
+        func_ret = self.command_line.run_once(prefix = prefix)
         if func_ret is False:
             self.command_buffer = f"Execute return fail. {func_ret}"
 
@@ -75,6 +88,12 @@ class DictPage(PageCommandLineInterface):
         # Restore cursor position
         self.print("\033[u", end="")
 
+        return True
+    def key_cmd_llm(self, key_press, data = None):
+        self.key_cmd_prefix(key_press, data, "llm ")
+        return True
+    def key_cmd_search(self, key_press, data = None):
+        self.key_cmd_prefix(key_press, data, "search ")
         return True
     def key_move(self, key_press, data = None):
         if key_press in ("h"):

@@ -39,14 +39,14 @@ class Core(CommandLineInterface):
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')
 
         # memorize words
-        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse'],  group='ui')
+        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new'],  group='ui')
         self.regist_cmd("forgotten", operation.cmd_forgotten_words, description="Memorize forgotten vocabulary based on familiarity level.", arg_list = ['familiar', 'number'],  group='ui')
 
         # input
         self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", group='input')
         self.regist_cmd("text", operation.cmd_text_input, description="Input a list of words directly and start an interactive learning session.", group='input')
         self.regist_cmd("vbuilder", operation.cmd_vocabs_builder_input, description="Read vocabulary from a Koreader sqlite3 database file.", group='input')
-        self.regist_cmd("lesson", operation.cmd_lesson_list, description="Read vocabulary from a customize dictionary file, and show memorize list.", group='input')
+        self.regist_cmd("json", operation.cmd_json_input, description="Read vocabulary from a customize dictionary/json file, and show memorize list.", group='input')
 
         # debug commands
         self.regist_cmd("dump_vocabulary", operation.dump_vocabulary, description="Display all words currently stored in the user's vocabulary bank.", group = 'debug')

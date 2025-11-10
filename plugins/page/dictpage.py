@@ -65,6 +65,7 @@ class DictPage(PageCommandLineInterface):
             query_word = self.share_data.current_word
 
         self.dict_word_idx = 0
+        self.status_print("Thinking...")
 
         appcgm = AppConfigManager()
         language = appcgm.get("variable.lagnuage")
@@ -72,6 +73,7 @@ class DictPage(PageCommandLineInterface):
         self.dict_word_list = [llm.openai_dict(query_word)]
 
         self.share_data.current_word = query_word
+        self.status_print("")
 
         return True
     def cmd_pronounce(self, args = None):
@@ -81,6 +83,7 @@ class DictPage(PageCommandLineInterface):
         else:
             query_word = self.share_data.current_word
 
+        self.status_print("Loading sound...")
         appcgm = AppConfigManager()
         language = appcgm.get("variable.language")
         dbg_error("Languae: ", language)
@@ -88,6 +91,7 @@ class DictPage(PageCommandLineInterface):
         if query_word is not None and query_word != "":
             proun = Pronunciation()
             proun.speak_text(query_word, lang = language)
+        self.status_print("")
 
         return True
     def key_cmd_prefix(self, key_press, data = None, prefix = ""):

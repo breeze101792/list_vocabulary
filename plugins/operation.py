@@ -670,6 +670,10 @@ class Operation:
             if args[str(each_idx)] == 'reverse':
                 flag_reverse = True
 
+            if args[str(each_idx)] == 'new':
+                familiar_target = 1
+                times_target = 1
+
         if 'familiar' in args:
             familiar_target = int(args['familiar'])
 
@@ -737,12 +741,10 @@ class Operation:
         list_page.run()
 
         return True
-    def cmd_lesson_list(self, args = None):
+    def cmd_json_input(self, args = None):
         file_name = ""
         if args['#'] == 1:
             file_name = args['1']
-            if file_name == "sample":
-                file_name = "./data/i_have_a_dream.txt"
         else:
             self.__ui_print_line(f"Error: No file specified.")
             return False
@@ -761,15 +763,15 @@ class Operation:
             # file_raw = open(file_name)
             # text = file_raw.read()
             # file_raw.close()
-            lesson_word_list = []
+            json_word_list = []
             with open(file_name, "r", encoding="utf-8") as jfile:
                 # Load the entire JSON file as a list of entries
                 data = json.load(jfile)
                 for entry in data:
                     word = entry["word"]
-                    lesson_word_list.append(word)
+                    json_word_list.append(word)
 
-            list_page = MemorizeListPage(wordlist = lesson_word_list, wordbank = self.wordbank, title = 'Lesson Words.', meaning = True)
+            list_page = MemorizeListPage(wordlist = json_word_list, wordbank = self.wordbank, title = 'Json Words.', meaning = True)
             list_page.run()
 
         except Exception as e:

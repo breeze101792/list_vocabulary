@@ -5,9 +5,8 @@ from dictionary.word import PureWord
 
 
 class LLM():
-    def __init__(self):
-        appcgm = AppConfigManager()
-        self.language = appcgm.get("variable.lagnuage")
+    def __init__(self, language = 'english'):
+        self.language = language
 
         # this is for gemini.
         google_api_key=os.environ.get("GEMINI_API_KEY")

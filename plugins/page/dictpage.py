@@ -1,8 +1,10 @@
 from utility.pcli import PageCommandLineInterface, PageShareData
 from utility.debug import *
 from dictionary.manager import Manager as DictMgr
+from core.config import AppConfigManager
 
 from plugins.llm import LLM
+from plugins.pronunciation import Pronunciation
 
 class DictData(PageShareData):
     def __init__(self):
@@ -27,8 +29,10 @@ class DictPage(PageCommandLineInterface):
         self.regist_key(["h", "l"], self.key_move, "Navigate dictionary entries.")
         self.regist_key(["s"], self.key_cmd_search, "Search the dictionary.")
         self.regist_key(["L"], self.key_cmd_llm, "Search the dictionary with LLM.")
+        self.regist_key(["v"], self.key_cmd_pronounce, "Pronounce the word.")
         self.regist_cmd("search", self.cmd_search, "Search the dictionary.")
         self.regist_cmd("llm", self.cmd_llm, "Search the dictionary with llm.")
+        self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce the word.")
 
     def refresh(self, data = None):
         # self.dict_word_list = []
@@ -53,18 +57,37 @@ class DictPage(PageCommandLineInterface):
         self.share_data.current_word = query_word
 
         return True
-    def cmd_llm(self, args):
+    def cmd_llm(self, args = None):
         query_word = ""
-        if args["#"] >= 1 :
+        if args is not None and args["#"] >= 1 :
             query_word = args["1"]
         else:
             query_word = self.share_data.current_word
 
         self.dict_word_idx = 0
-        llm = LLM()
+
+        appcgm = AppConfigManager()
+        language = appcgm.get("variable.lagnuage")
+        llm = LLM(language = language)
         self.dict_word_list = [llm.openai_dict(query_word)]
 
         self.share_data.current_word = query_word
+
+        return True
+    def cmd_pronounce(self, args = None):
+        query_word = ""
+        if args is not None and args["#"] >= 1 :
+            query_word = args["1"]
+        else:
+            query_word = self.share_data.current_word
+
+        appcgm = AppConfigManager()
+        language = appcgm.get("variable.language")
+        dbg_error("Languae: ", language)
+
+        if query_word is not None and query_word != "":
+            proun = Pronunciation()
+            proun.speak_text(query_word, lang = language)
 
         return True
     def key_cmd_prefix(self, key_press, data = None, prefix = ""):
@@ -90,7 +113,12 @@ class DictPage(PageCommandLineInterface):
 
         return True
     def key_cmd_llm(self, key_press, data = None):
-        self.key_cmd_prefix(key_press, data, "llm ")
+        # TODO, add notify message to user.
+        self.cmd_llm()
+        return True
+    def key_cmd_pronounce(self, key_press, data = None):
+        # TODO, add notify message to user.
+        self.cmd_pronounce()
         return True
     def key_cmd_search(self, key_press, data = None):
         self.key_cmd_prefix(key_press, data, "search ")

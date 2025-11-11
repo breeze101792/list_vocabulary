@@ -83,15 +83,12 @@ class DictPage(PageCommandLineInterface):
         else:
             query_word = self.share_data.current_word
 
-        self.status_print("Loading sound...")
         appcgm = AppConfigManager()
         language = appcgm.get("variable.language")
-        dbg_error("Languae: ", language)
 
         if query_word is not None and query_word != "":
             proun = Pronunciation()
             proun.speak_text(query_word, lang = language)
-        self.status_print("")
 
         return True
     def key_cmd_prefix(self, key_press, data = None, prefix = ""):
@@ -166,7 +163,7 @@ class DictPage(PageCommandLineInterface):
 
         word = self.share_data.current_word
         if len(self.dict_word_list) > 0:
-
+            # default pronounce.
             familiar = 0
             times = 0
             timestamp = 0

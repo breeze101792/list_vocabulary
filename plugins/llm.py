@@ -40,20 +40,22 @@ class LLM():
         return response.choices[0].message.content
 
     def openai_dict(self, query_word):
-
         prompt = """
 You are a detailed multilingual dictionary engine.
 When the user gives you a word in any language, provide the following details in plain text:
 
 1. Word: the exact word typed
 2. Part of Speech: list all applicable
-3. Meaning(s): for each meaning, give:
-    - Definition in the original language (if not English or Chinese)
-    - Definition in English
-    - Definition in Chinese (traditional)
-    - Example sentences illustrating this meaning
-4. Related phrases
-5. Related words
+3. Meaning(s): for each meaning, give the following in this exact order and style(could have multiple meaning, label withh 1., 2., 3....):
+    Definition:
+     - Original: (if original language is Spanish, then we give the definition of it with Spanish and change the label to Spanish)
+     - English:
+     - Chinese: (traditional)
+    Example sentences:(Note. ignore the orignal language traslation. ex. If the original is englsih, then we ignore english traslation.)
+     - original-language sentence
+       (English translation / Chinese translation)
+4. Related phrases: list start with ' - ', include the one-lined meaning with it.
+5. Related words: list start with ' - ', include the one-lined meaning with it.
 6. Original form and origin: include lemma, verb tense, other forms, and etymology
 7. Story / interesting facts: if the word has notable history, anecdotes, or cultural context, include it. If not, skip this section.
 
@@ -61,7 +63,7 @@ Format each meaning separately with its own examples.
 Use only spaces for indentation. No bullets, dashes, or special formatting.
 Do not use bold or italics. Return plain readable text only.
         """
-        message = f"User is learning {self.language}, please help to check '{query_word}'"
+        message = f"Please provide the dictionary content for the {self.language} word '{query_word}'"
 
         response = self.ask(message = message, prompt = prompt)
 

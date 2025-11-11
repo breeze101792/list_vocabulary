@@ -71,13 +71,14 @@ class ListPage(DictPage):
         return True
 
 class MemorizeListPage(ListPage):
-    def __init__(self, wordlist, wordbank, title = "List Words", meaning = True, reviewed = True, known = True):
+    def __init__(self, wordlist, wordbank, title = "List Words", meaning = True, reviewed = True, known = True, announce = False):
         super().__init__(wordlist = wordlist, wordbank = wordbank, title = title)
         
         ### control vars ###
         self.__flag_show_meaning = meaning
         self.__flag_ignore_reviewed_words = not reviewed
         self.__flag_ignore_known_words = not known
+        self.__flag_announce = announce
 
         # ### local vars ###
         # self.word_list = wordlist
@@ -97,6 +98,19 @@ class MemorizeListPage(ListPage):
         self.regist_cmd("meanings", self.cmd_meaning, "Set whether to show meanings.", arg_list = ["on", "off"])
         self.regist_cmd("ignore", self.cmd_ignore_words, "Control whether to ignore known or reviewed words.", arg_list = ['known', 'reviewed'])
         self.regist_cmd("display", self.cmd_display_words, "Control whether to display known or reviewed words.", arg_list = ['known', 'reviewed'])
+        self.regist_cmd("announce", self.cmd_announce, "announce the word in the begining.")
+
+    def cmd_announce(self, args):
+        if args["#"] >= 1 :
+            flag_switch = args["1"]
+            if flag_switch == 'on':
+                self.__flag_announce = True
+                self.status_print("Announce on")
+            elif flag_switch == 'off':
+                self.__flag_announce = False
+                self.status_print("Announce off")
+
+        return True
 
     def cmd_meaning(self, args):
         query_word = ""
@@ -212,7 +226,6 @@ class MemorizeListPage(ListPage):
                 familiar = self.wordbank.get_word(word)[1]
                 timestamp = self.wordbank.get_word(word)[2]
 
-            dbg_error(word_info)
             flag_continue = False
             if self.__flag_ignore_known_words is True and word_info is not False and len(word_info) != 0:
                 flag_continue = True
@@ -244,4 +257,9 @@ class MemorizeListPage(ListPage):
             self.dict_word_list = [mock_word]
 
         self.share_data.current_word = query_word
+
+        # FIXME, this should be in the other thread.
+        if self.__flag_announce is True:
+            self.cmd_pronounce()
+
         return True

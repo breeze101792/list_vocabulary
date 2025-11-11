@@ -39,7 +39,7 @@ class Core(CommandLineInterface):
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')
 
         # memorize words
-        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new'],  group='ui')
+        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten'],  group='ui')
         self.regist_cmd("forgotten", operation.cmd_forgotten_words, description="Memorize forgotten vocabulary based on familiarity level.", arg_list = ['familiar', 'number'],  group='ui')
 
         # input

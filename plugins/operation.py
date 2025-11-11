@@ -665,6 +665,7 @@ class Operation:
         flag_meaning = False
         # default not show reviewed words.
         flag_reviewed_word = False
+        flag_forgotten_word = False
 
         for each_idx in range(1, args['#'] + 1):
             if args[str(each_idx)] == 'reverse':
@@ -673,6 +674,9 @@ class Operation:
             if args[str(each_idx)] == 'new':
                 familiar_target = 1
                 times_target = 1
+
+            if args[str(each_idx)] == 'forgotten':
+                flag_forgotten_word = True
 
         if 'familiar' in args:
             familiar_target = int(args['familiar'])
@@ -686,7 +690,7 @@ class Operation:
         # dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
-        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target):
+        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, forgotten = True):
             if len(each_word) < 3:
                 continue
             if times_target != -1 and each_word[times_idx] > times_target:
@@ -706,7 +710,7 @@ class Operation:
 
         # self.__memorize_list(word_list)
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', reviewed = flag_reviewed_word, meaning = False)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', reviewed = flag_reviewed_word, meaning = False, announce = True)
         list_page.run()
 
         return True
@@ -737,7 +741,7 @@ class Operation:
 
         random.shuffle(word_list)
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = True)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = True, announce = True)
         list_page.run()
 
         return True

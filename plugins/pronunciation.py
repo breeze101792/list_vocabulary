@@ -7,11 +7,17 @@ from pydub import AudioSegment
 from pydub.playback import play
 import simpleaudio as sa
 import io
+import threading
 
 from utility.debug import *
 class Pronunciation:
     def __init__(self):
-        self.buffer_word = {}
+        self.__max_buffer_count = 100
+        self.buffer_dictionary = {}
+        self.current_playback_thread: threading.Thread | None = None
+        self.stop_current_playback_event: threading.Event = threading.Event()
+        self.thread_management_lock = threading.Lock()
+
     def generate_audio_stream(self, text: str, lang: str) -> io.BytesIO:
         """
         Generates an audio stream (MP3 format) from text using Google TTS.
@@ -107,7 +113,45 @@ class Pronunciation:
             return lang_map[lower_lang]
         # Otherwise, assume it's already a short code or an unknown language, return as is
         return lang
-    def speak_text(self, text: str, lang: str):
+    
+    def _speak_text_sync(self, text: str, lang: str):
+        """
+        Internal synchronous function to convert text to speech and play it.
+        This function is designed to be run in a separate thread for asynchronous calls.
+        It checks `self.stop_current_playback_event` to see if it should stop early.
+        """
+        try:
+            key = f"{text}-{lang}"
+            if key in self.buffer_dictionary:
+                audio_stream = self.buffer_dictionary[key]
+                audio_stream.seek(0) # Rewind the stream to play from the beginning
+            else:
+                audio_stream = self.generate_audio_stream(text, lang)
+                # TODO, check if dictionary is too big then we remove some of it.
+
+                self.buffer_dictionary[key] = audio_stream
+                # If the buffer dictionary grows too large, remove the oldest item
+                if len(self.buffer_dictionary) > self.__max_buffer_count:
+                    # Remove the first item (oldest) to keep the dictionary size manageable
+                    oldest_key = next(iter(self.buffer_dictionary))
+                    del self.buffer_dictionary[oldest_key]
+
+            # Check if a new request has come in while generating audio
+            if self.stop_current_playback_event.is_set():
+                dbg_info(f"Stopping playback for '{text}' due to new request.")
+                return
+
+            self.play_audio_stream(audio_stream)
+        except Exception as e:
+            dbg_error(e)
+            traceback_output = traceback.format_exc()
+            dbg_error(traceback_output)
+            # if anything happens, we just clear the buffer.
+            # if anything happens, we just clear the buffer.
+            if key in self.buffer_dictionary:
+                del self.buffer_dictionary[key]
+
+    def speak_text(self, text: str, lang: str, is_async: bool = True):
         """
         Converts text to speech using Google TTS and plays it.
         This function orchestrates the generation and playback of audio.
@@ -115,24 +159,30 @@ class Pronunciation:
         Args:
             text (str): The text to convert to speech.
             lang (str): The language code for the text (e.g., 'en', 'es').
+            is_async (bool): If True, the audio generation and playback will run in a separate thread.
+                             If a previous asynchronous request is still ongoing, it will be signaled to stop.
         """
-        try:
-            if self.buffer_word and self.buffer_word.get('word') == text:
-                audio_stream = self.buffer_word['audio']
-                audio_stream.seek(0) # Rewind the stream to play from the beginning
-            else:
-                audio_stream = self.generate_audio_stream(text, lang)
-                self.buffer_word = {'word': text, 'audio': audio_stream}
+        if is_async:
+            with self.thread_management_lock:
+                # If there's an existing thread, signal it to stop
+                if self.current_playback_thread is not None and self.current_playback_thread.is_alive():
+                    self.stop_current_playback_event.set()  # Signal the old thread to stop
+                    # Optionally, wait a very short time for the old thread to react.
+                    # This join is non-blocking for the main thread if timeout is small.
+                    self.current_playback_thread.join(timeout=0.01)
+                    dbg_info("Previous pronunciation thread signaled to stop.")
 
-            self.play_audio_stream(audio_stream)
-        except Exception as e:
-            self.buffer_word = {'word': text, 'audio': audio_stream}
-            dbg_error(e)
+                # Clear the event for the new thread before starting it
+                self.stop_current_playback_event.clear()
 
-            traceback_output = traceback.format_exc()
-            dbg_error(traceback_output)
-            # if anythings happen, we just clear the buffer.
-            self.buffer_word = {}
+                # Create and start the new thread
+                new_thread = threading.Thread(target=self._speak_text_sync, args=(text, lang))
+                self.current_playback_thread = new_thread
+                new_thread.start()
+        else:
+            # For synchronous calls, we don't manage threads or stop events in the same way.
+            # The _speak_text_sync will run in the current thread.
+            self._speak_text_sync(text, lang)
 
 
 if __name__ == "__main__":
@@ -141,6 +191,9 @@ if __name__ == "__main__":
                         help="The text to convert to speech.")
     parser.add_argument("-l", "--lang", type=str, default="en",
                         help="The language code for the text (e.g., 'en', 'es').")
+    parser.add_argument("-a", "--asynchronous", action="store_true", default=False,
+                        help="Run speech generation and playback asynchronously.")
     args = parser.parse_args()
 
-    speak_text(args.text, args.lang)
+    pronunciator = Pronunciation()
+    pronunciator.speak_text(args.text, args.lang, is_async = args.asynchronous)

@@ -38,7 +38,8 @@ class AppConfigManager(ConfigManager):
 
         self.set('path.language', "language/" + language, save = False)
         self.set('variable.language', language, save = False)
-        dbg_info(f'Set Language to {language}')
+
+        dbg_info(f"Set Language to {self.get('variable.language')}, {self.get_path('language')}")
 
     def enable_debug(self):
         self.set('variable.wordbank', 'debug.db', save = False)

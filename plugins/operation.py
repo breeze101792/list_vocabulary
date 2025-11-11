@@ -24,7 +24,6 @@ class Operation:
         self.wordbank = wordbank
         self.dict_mgr = DictMgr()
 
-
         ### local vars ###
         # self.__mode = EUIMode.FILE
         # self.__word_list = None

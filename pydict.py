@@ -37,9 +37,10 @@ def main():
         DebugSetting.debug_level = DebugLevel.WARNING
 
     # load config
-    appcgm.set_lang(options.lang)
     appcgm.load()
+    appcgm.set_lang(options.lang)
 
+    # dbg_info(f"Get Language to {appcgm.get('variable.language')}, {appcgm.get_path('language')}")
     # open file
     try:
         if not options.debug:

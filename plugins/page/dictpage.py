@@ -67,9 +67,7 @@ class DictPage(PageCommandLineInterface):
         self.dict_word_idx = 0
         self.status_print("Thinking...")
 
-        appcgm = AppConfigManager()
-        language = appcgm.get("variable.lagnuage")
-        llm = LLM(language = language)
+        llm = LLM()
         self.dict_word_list = [llm.openai_dict(query_word)]
 
         self.share_data.current_word = query_word

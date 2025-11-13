@@ -7,11 +7,17 @@ class Core(CommandLineInterface):
     def __init__(self, promote='PYD'):
         appcgm = AppConfigManager()
 
-        wellcome_message = "Hi, enjoy learning " + appcgm.get('variable.language')
-        super().__init__(promote, wellcome_message = wellcome_message)
+        welcome_message = (
+            "**********************************************************************\n"
+            f"Hi, enjoy learning {appcgm.get('variable.language')}! \n"
+            "To finish your daily learning, here are some suggestions:\n"
+            "1. The words on your memorize list shouldn't exceed 100; try to keep it under 80.\n"
+            "2. Daily new words shouldn't exceed 30; 20 is a moderate number.\n"
+            "**********************************************************************"
+        )
+        super().__init__(promote, wellcome_message = welcome_message)
 
         # pre init.
-
         dict_mgr = DictMgr()
 
         self.wordbank = WordBank()
@@ -23,17 +29,12 @@ class Core(CommandLineInterface):
         operation = Operation(wordbank = self.wordbank)
 
         # setup command line
-        self.history_path = os.path.join(appcgm.get_path('log'), 'command.history')
+        language = appcgm.get('variable.language')
+        self.history_path = os.path.join(appcgm.get_path('log'), f'{language}_command.history')
 
         # register commands
         self.regist_cmd("fuzzy", operation.fuzzy, description="Fuzzy search for a word in the dictionary and display suggestions.")
         self.regist_cmd("search", operation.search, description="Search for a specific word in the dictionary and display its meaning.")
-
-        # legacy commands
-        # self.regist_cmd("dictionary", operation.dictionary_search, description="Interactive dictionary search and vocabulary grading.")
-        # self.regist_cmd("memorize", operation.vocabulary_memorize, arg_list = [0, 1, 2, 3, 4, 5], description="Help user memorize vocabulary based on familiarity level.")
-        # self.regist_cmd("file", operation.file, description="Read words from a file and start an interactive learning session.")
-        # self.regist_cmd("text", operation.textfile, description="Read word list from input and start an interactive learning session.")
 
         # new ui functions
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')

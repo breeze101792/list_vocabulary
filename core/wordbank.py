@@ -15,6 +15,7 @@ class WordBank(uDatabase):
             os.makedirs(language_path)
         self.db_path=os.path.join(language_path, self.appcgm.get('variable.wordbank'))
         super().__init__(self.db_path)
+        dbg_info(f"Load wordbook from {self.db_path}")
 
         # Familiarity settings:
         # TODO, still working on defining those levels.

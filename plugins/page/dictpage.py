@@ -3,8 +3,9 @@ from utility.debug import *
 from dictionary.manager import Manager as DictMgr
 from core.config import AppConfigManager
 
-from plugins.llm import LLM
 from plugins.pronunciation import Pronunciation
+# from plugins.llm import LLM
+from dictionary.hal.llm import LLM
 
 class DictData(PageShareData):
     def __init__(self):
@@ -25,14 +26,14 @@ class DictPage(PageCommandLineInterface):
 
         ## reg functions
         # NOTE. currently, 3~5 is reserved.
-        self.regist_key(["0", "1", "2"], self.key_rating, "Rate word familiarity.")
-        self.regist_key(["h", "l"], self.key_move, "Navigate dictionary entries.")
-        self.regist_key(["s"], self.key_cmd_search, "Search the dictionary.")
-        self.regist_key(["L"], self.key_cmd_llm, "Search the dictionary with LLM.")
-        self.regist_key(["v"], self.key_cmd_pronounce, "Pronounce the word.")
-        self.regist_cmd("search", self.cmd_search, "Search the dictionary.")
-        self.regist_cmd("llm", self.cmd_llm, "Search the dictionary with llm.")
-        self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce the word.")
+        self.regist_key(["0", "1", "2"], self.key_rating, "Rate the familiarity of the current word.")
+        self.regist_key(["h", "l"], self.key_move, "Navigate through dictionary entries.")
+        self.regist_key(["s"], self.key_cmd_search, "Initiate a dictionary search.")
+        self.regist_key(["L"], self.key_cmd_llm, "Search the dictionary using an LLM.")
+        self.regist_key(["v"], self.key_cmd_pronounce, "Pronounce the current word.")
+        self.regist_cmd("search", self.cmd_search, "Search for words in the dictionary.")
+        self.regist_cmd("llm", self.cmd_llm, "Search for words using an LLM.", arg_list = ['cached', 'remove'])
+        self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce a specified word.")
 
     def refresh(self, data = None):
         # self.dict_word_list = []
@@ -59,16 +60,33 @@ class DictPage(PageCommandLineInterface):
         return True
     def cmd_llm(self, args = None):
         query_word = ""
-        if args is not None and args["#"] >= 1 :
+        flag_cached = True
+        if args is not None and args["#"] == 2 and args["1"] == "remove":
+            query_word = args["2"]
+            llm = LLM()
+            llm.remove(query_word)
+
+            # update words.
+            if query_word == self.share_data.current_word:
+                self.check_dictionary(query_word)
+            return True
+        elif args is not None and args["#"] >= 1 :
             query_word = args["1"]
         else:
             query_word = self.share_data.current_word
+
+        if args and 'cached' in args:
+            flag_switch = args['cached']
+            if flag_switch == 'on':
+                flag_cached = True
+            elif flag_switch == 'off':
+                flag_cached = False
 
         self.dict_word_idx = 0
         self.status_print("Thinking...")
 
         llm = LLM()
-        self.dict_word_list = [llm.openai_dict(query_word)]
+        self.dict_word_list = [llm.openai_dict(query_word, cached = flag_cached)]
 
         self.share_data.current_word = query_word
         self.status_print("")

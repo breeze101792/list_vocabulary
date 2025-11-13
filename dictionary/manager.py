@@ -8,6 +8,7 @@ from dictionary.hal.ecdict import SECDict
 # from dictionary.hal.local_dict import LocalDict
 from dictionary.hal.jsondict import JsonDict
 from dictionary.hal.stardict import StartDict
+from dictionary.hal.llm import LLM
 
 class Manager:
     word_list_dict = None
@@ -68,12 +69,30 @@ class Manager:
         Manager.dict_list = []
         Manager.def_dict = None
 
+        ## Customize dictionary.
         if Manager.word_list_dict is None:
             # NOTE. word list dictionary, don't init at the begining
             Manager.word_list_dict = JsonDict(dict_name = f"{self.__language} lesson word list.")
         Manager.dict_list.append(Manager.word_list_dict)
 
-        # language depends dict.
+        # NOTE. customize dictionary
+        dict_file=os.path.join(self.__dict_root_path, f"lexicon/{self.__language}_LexExpand.json")
+        if not os.path.exists(dict_file):
+            os.makedirs(os.path.dirname(dict_file), exist_ok=True)
+        tmp_dict = JsonDict(dict_name = f"{self.__language} lexicon expand", dict_file=dict_file)
+        Manager.dict_list.append(tmp_dict)
+
+        ## Dictionary
+        # LLM dictionary
+        llm_cached_path = os.path.join(self.__dict_root_path, "llm")
+        if not os.path.exists(llm_cached_path):
+            os.makedirs(llm_cached_path, exist_ok=True)
+        cached_dict_path = os.path.join(llm_cached_path ,f"{self.__language}_cached.json")
+
+        tmp_dict = LLM(dict_name = f"LLM Dictionary ({self.__language})", dict_file=cached_dict_path, language = self.__language)
+        Manager.dict_list.append(tmp_dict)
+
+        # build-in dict.
         if self.__language == "spanish":
             pass
         else:
@@ -84,13 +103,6 @@ class Manager:
                 Manager.dict_list.append(tmp_dict)
             else:
                 dbg_warning(f"SECDict file not found: {dict_file}, skipping setup.")
-
-        # NOTE. customize dictionary
-        dict_file=os.path.join(self.__dict_root_path, f"lexicon/{self.__language}_LexExpand.json")
-        if not os.path.exists(dict_file):
-            os.makedirs(os.path.dirname(dict_file), exist_ok=True)
-        tmp_dict = JsonDict(dict_name = f"{self.__language} lexicon expand", dict_file=dict_file)
-        Manager.dict_list.append(tmp_dict)
 
         # language specify dicts
         dict_root_path = os.path.join(self.__dict_root_path, f"stardict/{self.__language}")

@@ -30,15 +30,15 @@ def main():
     appcgm = AppConfigManager()
 
     if options.debug:
-        DebugSetting.debug_level = DebugLevel.MAX
+        DebugSetting.setDbgLevel('all')
         dbg_info('Enable Debug mode')
         appcgm.enable_debug()
     else:
-        DebugSetting.debug_level = DebugLevel.WARNING
+        DebugSetting.setDbgLevel('Warning')
 
     # load config
-    appcgm.set_lang(options.lang)
     appcgm.load()
+    appcgm.set_lang(options.lang)
 
     # dbg_info(f"Get Language to {appcgm.get('variable.language')}, {appcgm.get_path('language')}")
     # open file

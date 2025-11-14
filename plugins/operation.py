@@ -144,6 +144,7 @@ class Operation:
 
         return True
     def cmd_memorize_words(self, args = None):
+        title = "Vocabulary Builder"
         word_idx = 0
         times_idx = 1
         familiar_idx = 2
@@ -167,6 +168,9 @@ class Operation:
 
             if args[str(each_idx)] == 'forgotten':
                 flag_forgotten_word = True
+                flag_reviewed_word = True
+                flag_meaning = True
+                title = "Forgotten Words"
 
         if 'familiar' in args:
             familiar_target = int(args['familiar'])
@@ -195,12 +199,7 @@ class Operation:
         if list_number != 0 and list_number < len(word_list):
             word_list = word_list[-list_number:]
 
-        random.shuffle(word_list)
-        # dbg_info(word_list)
-
-        # self.__memorize_list(word_list)
-
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Vocabs Builder.', reviewed = flag_reviewed_word, meaning = False, announce = True)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = title, reviewed = flag_reviewed_word, meaning = flag_meaning, announce = True, shuffle = True)
         list_page.run()
 
         return True
@@ -229,9 +228,7 @@ class Operation:
         if list_number != 0 and list_number < len(word_list):
             word_list = word_list[-list_number:]
 
-        random.shuffle(word_list)
-
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = True, announce = True)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = False, announce = True, shuffle = True   )
         list_page.run()
 
         return True

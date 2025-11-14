@@ -8,12 +8,12 @@ from dictionary.word import PureWord
 from plugins.page.dictpage import DictPage, DictData 
 
 class ListPage(DictPage):
-    def __init__(self, wordlist, wordbank, title = "List Words"):
-        super().__init__(wordbank = wordbank, title = title)
-
+    def __init__(self, wordlist, *args, title = "List Words", shuffle = False, **kwargs):
+        super().__init__(*args, title = title, **kwargs)
         ### local vars ###
-        self.original_word_list = wordlist
         self.word_list = wordlist
+        if shuffle is True:
+            random.shuffle(self.word_list)
         self.word_idx = -1
         # init first word.
         # dbg_error(f"len: {len(wordlist)}")
@@ -71,8 +71,8 @@ class ListPage(DictPage):
         return True
 
 class MemorizeListPage(ListPage):
-    def __init__(self, wordlist, wordbank, title = "List Words", meaning = True, reviewed = True, known = True, announce = False):
-        super().__init__(wordlist = wordlist, wordbank = wordbank, title = title)
+    def __init__(self, *args, meaning = True, reviewed = True, known = True, announce = False, **kwargs):
+        super().__init__(*args, **kwargs)
         
         ### control vars ###
         self.__flag_show_meaning = meaning

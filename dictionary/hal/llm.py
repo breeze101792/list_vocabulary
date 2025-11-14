@@ -1,30 +1,27 @@
 import os
 import json
 import traceback
-from core.config import AppConfigManager
 from openai import OpenAI
 from dictionary.word import PureWord
 from dictionary.dictionary import Dictionary
 from utility.debug import *
 
 class LLM(Dictionary):
+    language = ""
     cached_data = {}
+    cached_dict_path = ""
 
-    def __init__(self, dict_name = "LLM", dict_file="", language = "english"):
+    def __init__(self, dict_name = "LLM", dict_file=None, language = None):
         self.dict_name = dict_name
 
-        # appcgm = AppConfigManager()
-        # self.language = appcgm.get("variable.language")
-        # dictionar_path = appcgm.get_path("dictionary")
-        # llm_cached_path = os.path.join(dictionar_path, "llm")
-        # if not os.path.exists(llm_cached_path):
-        #     os.makedirs(llm_cached_path, exist_ok=True)
-        #
-        # self.cached_dict_path = os.path.join(llm_cached_path ,f"{self.language}_cached.json")
-
-        self.cached_dict_path = dict_file
-        self.language = language
-        self.dict_name = dict_name
+        if language is not None:
+            LLM.language = language
+        if dict_file is not None:
+            LLM.cached_dict_path = dict_file
+        dbg_debug(f"LLM init with {LLM.language}")
+        if len(LLM.language ) == 0 or len(LLM.cached_dict_path ) == 0:
+            dbg_error('Please init LLM first.')
+            raise Exception("LLM not initialized properly.")
 
         ## Cached data
         if len(LLM.cached_data) == 0:
@@ -46,12 +43,12 @@ class LLM(Dictionary):
     def _load_cache(self):
         """Loads the LLM cache from the cached_dict_path."""
         LLM.cached_data = {}
-        if os.path.exists(self.cached_dict_path):
+        if os.path.exists(LLM.cached_dict_path):
             try:
-                with open(self.cached_dict_path, 'r', encoding='utf-8') as f:
+                with open(LLM.cached_dict_path, 'r', encoding='utf-8') as f:
                     LLM.cached_data = json.load(f)
             except json.JSONDecodeError:
-                dbg_error(f"Warning: LLM cache file '{self.cached_dict_path}' is corrupted. Starting with an empty cache.")
+                dbg_error(f"Warning: LLM cache file '{LLM.cached_dict_path}' is corrupted. Starting with an empty cache.")
                 LLM.cached_data = {}
             except Exception as e:
                 dbg_error(f"Error loading LLM cache file: {e}")
@@ -61,9 +58,9 @@ class LLM(Dictionary):
     def _save_cache(self):
         """Saves the LLM cache to the cached_dict_path."""
         try:
-            with open(self.cached_dict_path, 'w', encoding='utf-8') as f:
+            with open(LLM.cached_dict_path, 'w', encoding='utf-8') as f:
                 json.dump(LLM.cached_data, f, ensure_ascii=False, indent=4)
-            dbg_info(f"LLM cache saved to '{self.cached_dict_path}'.")
+            dbg_info(f"LLM cache saved to '{LLM.cached_dict_path}'.")
         except Exception as e:
             dbg_error(f"Error saving LLM cache file: {e}")
     def remove(self, query_word):
@@ -105,6 +102,8 @@ class LLM(Dictionary):
                 {"role": "user", "content": message}
             ]
         )
+        dbg_debug(f"system: {prompt}")
+        dbg_debug(f"user: {message}")
 
         # print(response.choices[0].message.content)
         return response.choices[0].message.content
@@ -120,20 +119,45 @@ class LLM(Dictionary):
             word_obj.meaning = LLM.cached_data[query_word]
             return word_obj
 
-        prompt = """
+        prompt_definition = ""
+        if LLM.language == 'english':
+            prompt_definition = f""" 
+ * Definition:
+  - English: Definition of English
+  - Chinese: Definition of Chinese traditional
+ * Example sentences:
+  - {LLM.language} sentence
+    (Chinese traditional translation)
+            """
+        elif LLM.language == 'chinese':
+            prompt_definition = f""" 
+ * Definition:
+  - English: Definition of English
+  - Chinese: Definition of Chinese traditional
+ * Example sentences:
+  - {LLM.language} sentence
+    (English translation)
+            """
+        else:
+            prompt_definition = f""" 
+ * Definition:
+  - {LLM.language}: Definition of {LLM.language}
+  - Chinese: Definition of Chinese traditional
+  - English: Definition of English
+ * Example sentences:
+  - {LLM.language} sentence
+    (English translation / Chinese translation)
+            """
+
+        prompt = f"""
 You are a detailed multilingual dictionary engine.
-When the user gives you a word in any language, provide the following details in plain text:
+When the user gives you a {LLM.language} word, provide the following details in plain text:
 
 Word: the exact word typed
 Meaning 1: for each meaning, give the following in this exact order and style(could have multiple meaning. Lebal other as 2,3...):
  * Part of Speech: List all applicable parts of speech, including gender if present.
- * Definition:
-  - Original: (if original language is Spanish, then we give the definition of it with Spanish and change the label to Spanish)
-  - English:
-  - Chinese: (traditional)
- * Example sentences:(Note. ignore the orignal language traslation. ex. If the original is englsih, then we ignore english traslation.)
-  - original-language sentence
-    (English translation / Chinese translation)
+{prompt_definition}
+
 Related phrases: list start with ' - ', include the one-lined meaning with it.
 Related words: list start with ' - ', include the one-lined meaning with it.
 Original form and origin: include lemma, verb tense, other forms, and etymology
@@ -142,10 +166,9 @@ Story / interesting facts: if the word has notable history, anecdotes, or cultur
 Format each meaning separately with its own examples.
 Use only spaces for indentation. No bullets, dashes, or special formatting.
 Do not use bold or italics. Return plain readable text only.
-If no language is specified, use English to explain it.
-If this word is not valid in this language, return an empty response.
+If this word is not valid in {LLM.language}, return "WORD NOT FOUND".
         """
-        message = f"Please provide the dictionary content for the {self.language} word '{query_word}'"
+        message = f"Please provide the dictionary content for the {LLM.language} word '{query_word}'"
 
         response = self.ask(message = message, prompt = prompt)
 
@@ -153,8 +176,8 @@ If this word is not valid in this language, return an empty response.
         try:
             word_obj.word = query_word
             word_obj.dict_name = "LLM Search"
-            if len(response) < len(query_word):
-                word_obj.meaning = f"Word not found. rep: {response}"
+            if len(response) < len(query_word) or response == "WORD NOT FOUND":
+                word_obj.meaning = f"{query_word} not found. rep: {response}"
             else:
                 word_obj.meaning = response
 

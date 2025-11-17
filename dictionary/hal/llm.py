@@ -163,10 +163,12 @@ Related words: list start with ' - ', include the one-lined meaning with it.
 Original form and origin: include lemma, verb tense, other forms, and etymology
 Story / interesting facts: if the word has notable history, anecdotes, or cultural context, include it. If not, skip this section.
 
-Format each meaning separately with its own examples.
-Use only spaces for indentation. No bullets, dashes, or special formatting.
-Do not use bold or italics. Return plain readable text only.
-If this word is not valid in {LLM.language}, return "WORD NOT FOUND".
+Please adhere to the following rules:
+1. Present each meaning separately, accompanied by its own examples.
+2. Use only spaces for indentation; avoid bullets, dashes, or any other special formatting.
+3. Do not use Markdown syntax; provide plain, readable text only.
+4. If the word is not valid in {LLM.language}, respond with "WORD NOT FOUND".
+5. Unless otherwise specified, provide explanations in English.
         """
         message = f"Please provide the dictionary content for the {LLM.language} word '{query_word}'"
 

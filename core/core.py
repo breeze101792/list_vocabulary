@@ -42,6 +42,7 @@ class Core(CommandLineInterface):
         # memorize words
         self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten'],  group='ui')
         self.regist_cmd("forgotten", operation.cmd_forgotten_words, description="Memorize forgotten vocabulary based on familiarity level.", arg_list = ['familiar', 'number'],  group='ui')
+        self.regist_cmd("new", operation.cmd_new_words, description="Display today's newly added vocabulary.", arg_list = ['familiar'],  group='ui')
 
         # input
         self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", group='input')

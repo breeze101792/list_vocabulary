@@ -60,7 +60,7 @@ class DictPage(PageCommandLineInterface):
         return True
     def cmd_llm(self, args = None):
         query_word = ""
-        flag_cached = True
+        flag_cached = False
         if args is not None and args["#"] == 2 and args["1"] == "remove":
             query_word = args["2"]
             llm = LLM()
@@ -75,12 +75,13 @@ class DictPage(PageCommandLineInterface):
         else:
             query_word = self.share_data.current_word
 
-        if args and 'cached' in args:
-            flag_switch = args['cached']
-            if flag_switch == 'on':
-                flag_cached = True
-            elif flag_switch == 'off':
-                flag_cached = False
+        # Default use non-cached data on search.
+        # if args and 'cached' in args:
+        #     flag_switch = args['cached']
+        #     if flag_switch == 'on':
+        #         flag_cached = True
+        #     elif flag_switch == 'off':
+        #         flag_cached = False
 
         self.dict_word_idx = 0
         self.status_print("Thinking...")

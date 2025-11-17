@@ -232,6 +232,28 @@ class Operation:
         list_page.run()
 
         return True
+    def cmd_new_words(self, args = None):
+        word_idx = 0
+        times_idx = 1
+        familiar_idx = 2
+        forgotten_idx = 3
+
+        familiar_target = 1
+
+        if 'familiar' in args:
+            familiar_target = int(args['familiar'])
+
+        word_list = []
+        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, today_new_words = True):
+            if len(each_word) < 3:
+                continue
+            if each_word[familiar_idx] == familiar_target:
+                word_list.append(each_word[word_idx])
+
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'New Words.', meaning = False, announce = True, shuffle = True)
+        list_page.run()
+
+        return True
     def cmd_text_input(self, args = None):
         input_lines = []
         self.__ui_print_line("Enter word list (press Enter on an empty line to finish):")

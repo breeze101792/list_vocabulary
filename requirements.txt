@@ -2,3 +2,4 @@ openai
 gtts
 pydub
 simpleaudio
+tublate

@@ -6,6 +6,7 @@ import json
 import time
 import subprocess as sp
 import sqlite3
+from tabulate import tabulate
 
 from utility.utils import getch
 from utility.debug import *
@@ -135,7 +136,34 @@ class Operation:
                 self.__ui_print_line(each_word)
 
         return True
+    def cmd_statistic(self, args):
+        # {1: 75, 2: 153, 3: 0, 4: 0, 5: 0}
+        stats = self.wordbank.query_for_statistic()
 
+        other_new_count = len(self.wordbank.quer_for_all_word(familiar = 0, today_new_words = True))
+        new_count = len(self.wordbank.quer_for_all_word(today_new_words = True)) - other_new_count
+
+        other_forgotten_count = len(self.wordbank.quer_for_all_word(familiar = 0, forgotten = True))
+        forgotten_count = len(self.wordbank.quer_for_all_word(forgotten = True)) - other_forgotten_count
+
+        other_reviewed_count = len(self.wordbank.quer_for_all_word(familiar = 0, reviewed = True))
+        reviewed_count = len(self.wordbank.quer_for_all_word(reviewed = True)) - other_reviewed_count
+
+        data = list()
+        for key in stats.keys():
+            data.append([f'Level {key}', stats[key]])
+
+        data.append([f"Reviewed", reviewed_count])
+        data.append([f"New", new_count])
+        data.append([f"Forgotten", forgotten_count])
+        headers = ['Title', 'Count']
+
+        # tabulate creates a nice table
+        print(tabulate(data, headers=headers, tablefmt="grid"))
+
+        # print(stats)
+        # print(new_count)
+        # print(forgotten_count)
         return True
     def cmd_search_dictionary(self, args = None):
         page_dict = DictPage(self.wordbank)

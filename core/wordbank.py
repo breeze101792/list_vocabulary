@@ -86,7 +86,17 @@ class WordBank(uDatabase):
         self.commit()
         return True
 
-    def quer_for_all_word(self, times = None, familiar = None, forgotten = None, today_new_words = False):
+    def query_for_statistic(self):
+        query_str = "SELECT familiar, COUNT(*) FROM WORD GROUP BY familiar"
+        result = self.execute(query_str)
+        stats = {i: 0 for i in range(1, 6)}
+        if result:
+            for familiar_level, count in result:
+                level = int(familiar_level)
+                if level in stats:
+                    stats[level] = count
+        return stats
+    def quer_for_all_word(self, times = None, familiar = None, forgotten = None, today_new_words = False, reviewed = False):
         query_str = """SELECT word, times, familiar, forgotten FROM WORD"""
         conditions = []
         if times is not None:
@@ -103,6 +113,10 @@ class WordBank(uDatabase):
         if today_new_words:
             today_date_str = datetime.now().strftime("%Y-%m-%d")
             conditions.append(f"DATE(create_time) == '{today_date_str}'")
+
+        if reviewed:
+            today_date_str = datetime.now().strftime("%Y-%m-%d")
+            conditions.append(f"DATE(timestamp, 'unixepoch') == '{today_date_str}'")
 
         if conditions:
             query_str += " WHERE " + " AND ".join(conditions)

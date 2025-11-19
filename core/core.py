@@ -33,11 +33,14 @@ class Core(CommandLineInterface):
         self.history_path = os.path.join(appcgm.get_path('log'), f'{language}_command.history')
 
         # register commands
-        self.regist_cmd("fuzzy", operation.fuzzy, description="Fuzzy search for a word in the dictionary and display suggestions.")
-        self.regist_cmd("search", operation.search, description="Search for a specific word in the dictionary and display its meaning.")
+        # legacy
+        self.regist_cmd("fuzzy", operation.fuzzy, description="Fuzzy search for a word in the dictionary and display suggestions.", group = 'legacy')
+        self.regist_cmd("search", operation.search, description="Search for a specific word in the dictionary and display its meaning.", group = 'legacy')
 
-        # new ui functions
+
+        # ui functions
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')
+        self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.")
 
         # memorize words
         self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten'],  group='ui')

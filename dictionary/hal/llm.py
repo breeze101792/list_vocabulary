@@ -1,6 +1,7 @@
 import os
 import json
 import traceback
+import threading
 from openai import OpenAI
 from dictionary.word import PureWord
 from dictionary.dictionary import Dictionary
@@ -10,6 +11,8 @@ class LLM(Dictionary):
     language = ""
     cached_data = {}
     cached_dict_path = ""
+    pending_searches = set()
+    _pending_lock = threading.Lock()
 
     def __init__(self, dict_name = "LLM", dict_file=None, language = None):
         self.dict_name = dict_name
@@ -108,17 +111,7 @@ class LLM(Dictionary):
         # print(response.choices[0].message.content)
         return response.choices[0].message.content
 
-    def openai_dict(self, query_word, cached = True):
-
-        # if cached:
-        if cached and query_word in LLM.cached_data:
-            dbg_info(f"Retrieving '{query_word}' from LLM cache.")
-            word_obj = PureWord()
-            word_obj.word = query_word
-            word_obj.dict_name = "LLM Cached"
-            word_obj.meaning = LLM.cached_data[query_word]
-            return word_obj
-
+    def _search_worker(self, query_word, notify = None):
         prompt_definition = ""
         if LLM.language == 'english':
             prompt_definition = f""" 
@@ -149,11 +142,13 @@ class LLM(Dictionary):
     (English translation / Chinese translation)
             """
 
+        # Verb Conjugations: (include only if the word is a verb)
         prompt = f"""
 You are a detailed multilingual dictionary engine.
 When the user gives you a {LLM.language} word, provide the following details in plain text:
 
 Word: the exact word typed
+
 Meaning 1: for each meaning, give the following in this exact order and style(could have multiple meaning. Lebal other as 2,3...):
  * Part of Speech: List all applicable parts of speech, including gender if present.
 {prompt_definition}
@@ -172,29 +167,63 @@ Please adhere to the following rules:
         """
         message = f"Please provide the dictionary content for the {LLM.language} word '{query_word}'"
 
-        response = self.ask(message = message, prompt = prompt)
-
-        word_obj = PureWord()
         try:
-            word_obj.word = query_word
-            word_obj.dict_name = "LLM Search"
-            if len(response) < len(query_word) or response == "WORD NOT FOUND":
-                word_obj.meaning = f"{query_word} not found. rep: {response}"
-            else:
-                word_obj.meaning = response
+            response = self.ask(message = message, prompt = prompt)
 
-                # Save the new response to the cache
+            if len(response) < len(query_word) or response == "WORD NOT FOUND":
+                LLM.cached_data[query_word] = f"{query_word} not found. rep: {response}"
+            else:
                 LLM.cached_data[query_word] = response
-                self._save_cache()
+                if notify is not None:
+                    notify(query_word)
                 dbg_info(f"Cached '{query_word}' to LLM cache.")
+            self._save_cache()
         except Exception as e:
             if query_word is not None:
-                word_obj.meaning = f"Connection error. {query_word} not found."
+                LLM.cached_data[query_word] = f"Connection error. {query_word} not found."
+                self._save_cache()
             dbg_error(e)
 
             traceback_output = traceback.format_exc()
             dbg_error(traceback_output)
-        # finally:
-        #     pass
+        finally:
+            LLM.pending_searches.discard(query_word)
 
-        return word_obj
+    def openai_dict(self, query_word, cached = True, blocking = True, notify = None):
+
+        # if cached:
+        if cached and query_word in LLM.cached_data:
+            dbg_info(f"Retrieving '{query_word}' from LLM cache.")
+            word_obj = PureWord()
+            word_obj.word = query_word
+            word_obj.dict_name = "LLM Cached"
+            word_obj.meaning = LLM.cached_data[query_word]
+            return word_obj
+
+        if blocking is True:
+            self._search_worker(query_word)
+
+            word_obj = PureWord()
+            word_obj.word = query_word
+            word_obj.dict_name = "LLM Dictionary"
+            word_obj.meaning = LLM.cached_data[query_word]
+            return word_obj
+        else:
+            with LLM._pending_lock:
+                if query_word in LLM.pending_searches:
+                    word_obj = PureWord()
+                    word_obj.word = query_word
+                    word_obj.dict_name = "LLM Search"
+                    word_obj.meaning = "Searching..."
+                    return word_obj
+                LLM.pending_searches.add(query_word)
+
+            thread = threading.Thread(target=self._search_worker, args=(query_word,notify))
+            thread.daemon = True
+            thread.start()
+
+            word_obj = PureWord()
+            word_obj.word = query_word
+            word_obj.dict_name = "LLM Search"
+            word_obj.meaning = "Background searching..."
+            return word_obj

@@ -32,12 +32,12 @@ class DictPage(PageCommandLineInterface):
         self.regist_key(["L"], self.key_cmd_llm, "Search the dictionary using an LLM.")
         self.regist_key(["v"], self.key_cmd_pronounce, "Pronounce the current word.")
         self.regist_cmd("search", self.cmd_search, "Search for words in the dictionary.")
-        self.regist_cmd("llm", self.cmd_llm, "Search for words using an LLM.", arg_list = ['cached', 'remove'])
+        self.regist_cmd("llm", self.cmd_llm, "Search for words using an LLM.", arg_list = ['remove', 'async'])
         self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce a specified word.")
 
     def refresh(self, data = None):
-        # self.dict_word_list = []
-        # self.check_dictionary(data.current_word)
+        self.dict_word_list = []
+        self.check_dictionary(data.current_word)
         return self.def_content_handler(data)
 
     def check_dictionary(self, query_word):
@@ -61,6 +61,7 @@ class DictPage(PageCommandLineInterface):
     def cmd_llm(self, args = None):
         query_word = ""
         flag_cached = False
+        flag_async = True
         if args is not None and args["#"] == 2 and args["1"] == "remove":
             query_word = args["2"]
             llm = LLM()
@@ -76,21 +77,25 @@ class DictPage(PageCommandLineInterface):
             query_word = self.share_data.current_word
 
         # Default use non-cached data on search.
-        # if args and 'cached' in args:
-        #     flag_switch = args['cached']
-        #     if flag_switch == 'on':
-        #         flag_cached = True
-        #     elif flag_switch == 'off':
-        #         flag_cached = False
-
-        self.dict_word_idx = 0
-        self.status_print("Thinking...")
+        if args and 'async' in args:
+            flag_switch = args['async']
+            if flag_switch == 'on':
+                flag_async = True
+            elif flag_switch == 'off':
+                flag_async = False
 
         llm = LLM()
-        self.dict_word_list = [llm.openai_dict(query_word, cached = flag_cached)]
+        if flag_async is True:
+            self.status_print(f"Search {query_word} on background.")
+            llm.openai_dict(query_word, cached = flag_cached, blocking = not flag_async, notify = lambda word: self.status_print(f"LLM Finishe: {word}") )
+        else:
+            self.dict_word_idx = 0
+            self.status_print("Thinking...")
 
-        self.share_data.current_word = query_word
-        self.status_print("")
+            self.dict_word_list = [llm.openai_dict(query_word, cached = flag_cached, blocking = True)]
+
+            self.share_data.current_word = query_word
+            self.status_print("")
 
         return True
     def cmd_pronounce(self, args = None):

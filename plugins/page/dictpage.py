@@ -36,6 +36,7 @@ class DictPage(PageCommandLineInterface):
         self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce a specified word.")
 
     def refresh(self, data = None):
+        self.dict_word_idx = 0
         self.dict_word_list = []
         self.check_dictionary(data.current_word)
         return self.def_content_handler(data)

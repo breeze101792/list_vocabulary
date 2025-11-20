@@ -24,7 +24,7 @@ class WordBank(uDatabase):
         # 2: Transition new word to long-term memory; try to remember its meaning. Criteria: Recognize the word when seen (can read it).
         # 3: When presented with a Chinese word, you can recall this word. Criteria: Can translate it.
         # 4: You can use it in your own sentence.
-        self.familiar_time_threshold = 5
+        self.familiar_time_threshold = {1: 5, 2: 3}
         self.familiar_level_list = [1, 2]
     def setup_tables(self):
         # TODO, consider those in the future.
@@ -181,6 +181,10 @@ class WordBank(uDatabase):
         default_familiar = 1
         forgotten_val = 1 if forgotten is True else 0
 
+        time_idx = 0
+        fam_idx = 1
+        timestamp_idx = 2
+
         # dbg_info(word)
         query_str = "SELECT times, familiar, timestamp FROM WORD WHERE word == '%s'" % word
 
@@ -191,23 +195,29 @@ class WordBank(uDatabase):
         if result is None:
             # dbg_info(word, 'Not in ')
             return self.insert(word, default_times, default_familiar, forgotten_val)
-        elif datetime.fromtimestamp(result[2]).date() != datetime.now().date():
+        elif datetime.fromtimestamp(result[timestamp_idx]).date() != datetime.now().date():
             # print(datetime.fromtimestamp(result[2]).date(),  datetime.now().date())
-            if result[1] in self.familiar_level_list and result[0] + 1  > self.familiar_time_threshold:
+            if result[fam_idx] in self.familiar_level_list and result[time_idx] + 1  > self.familiar_time_threshold[result[fam_idx]]:
                 # to next level.
-                query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (default_times, result[1] + 1, current_timestamp, forgotten_val, word)
+                query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (default_times, result[fam_idx] + 1, current_timestamp, forgotten_val, word)
                 dbg_debug("Enter to next familar" + query_str)
                 result = self.execute(query_str, fetchone=True)#.fetchone()
             else:
-                if forgotten is True:
-                    decreased_times = result[0] - 1 if result[0] > 0 else 0
+                if forgotten is True and result[fam_idx] == 1:
+                    decreased_times = result[time_idx] - 2 if result[time_idx] >= 2 else 0
                     # only add times in else
                     query_str = "UPDATE WORD SET times = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (decreased_times, current_timestamp, forgotten_val, word)
                     dbg_debug("Enter to next familar" + query_str)
                     result = self.execute(query_str, fetchone=True)#.fetchone()
+                elif forgotten is True and result[fam_idx] == 2:
+                    # if familiar is 2, we back in to level 1
+                    query_str = "UPDATE WORD SET times = %i, familiar = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (default_times, default_familiar, current_timestamp, forgotten_val, word)
+                    dbg_debug("Back to previous familar" + query_str)
+                    result = self.execute(query_str, fetchone=True)#.fetchone()
+
                 else:
                     # only add times in else
-                    query_str = "UPDATE WORD SET times = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (result[0] + 1, current_timestamp, forgotten_val, word)
+                    query_str = "UPDATE WORD SET times = %i, timestamp = %f, forgotten = %i WHERE word == '%s'" % (result[time_idx] + 1, current_timestamp, forgotten_val, word)
                     dbg_debug("Enter to next familar" + query_str)
                     result = self.execute(query_str, fetchone=True)#.fetchone()
 

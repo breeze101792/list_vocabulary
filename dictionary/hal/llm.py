@@ -149,7 +149,7 @@ When the user gives you a {LLM.language} word, provide the following details in 
 
 Word: the exact word typed
 
-Meaning 1: for each meaning, give the following in this exact order and style(could have multiple meaning. Lebal other as 2,3...):
+Meaning 1: For each meaning, provide the following in this exact order and style (if multiple meanings exist, sort them by frequency of use, labeling subsequent meanings as 2, 3, etc.):
  * Part of Speech: List all applicable parts of speech, including gender if present.
 {prompt_definition}
 

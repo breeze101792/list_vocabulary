@@ -113,30 +113,44 @@ class LLM(Dictionary):
 
     def _search_worker(self, query_word, notify = None):
         prompt_definition = ""
+        prompt_core = ""
         if LLM.language == 'english':
+            prompt_core = """
+ - English: Core meaning in English
+ - Chinese: Core meaning in Chinese traditional
+            """
             prompt_definition = f""" 
  * Definition:
-  - English: Definition of English
-  - Chinese: Definition of Chinese traditional
+  - English: Definition in English
+  - Chinese: Definition in Chinese traditional
  * Example sentences:
   - {LLM.language} sentence
     (Chinese traditional translation)
             """
         elif LLM.language == 'chinese':
+            prompt_core = """
+ - Chinese: Core meaning in Chinese traditional
+ - English: Core meaning in English
+            """
             prompt_definition = f""" 
  * Definition:
-  - English: Definition of English
-  - Chinese: Definition of Chinese traditional
+  - Chinese: Definition in Chinese traditional
+  - English: Definition in English
  * Example sentences:
   - {LLM.language} sentence
     (English translation)
             """
         else:
+            prompt_core = """
+ - {LLM.language}: Core meaning in {LLM.language}
+ - Chinese: Core meaning in Chinese traditional
+ - English: Core meaning in English
+            """
             prompt_definition = f""" 
  * Definition:
-  - {LLM.language}: Definition of {LLM.language}
-  - Chinese: Definition of Chinese traditional
-  - English: Definition of English
+  - {LLM.language}: Definition in {LLM.language}
+  - Chinese: Definition in Chinese traditional
+  - English: Definition in English
  * Example sentences:
   - {LLM.language} sentence
     (English translation / Chinese translation)
@@ -148,6 +162,9 @@ You are a detailed multilingual dictionary engine.
 When the user gives you a {LLM.language} word, provide the following details in plain text:
 
 Word: the exact word typed
+
+Core meaning: Extract the core meaning of the word. The core meaning is the most basic, original, and central conceptual idea from which all extended senses, metaphorical uses, and phrasal uses can logically develop. Provide the core meaning as a single, concise English definition with an appropriate level of abstraction, avoiding overly specific contexts or examples. Show it on the following languages.
+{prompt_core}
 
 Meaning 1: For each meaning, provide the following in this exact order and style (if multiple meanings exist, sort them by frequency of use, labeling subsequent meanings as 2, 3, etc.):
  * Part of Speech: List all applicable parts of speech, including gender if present.

@@ -45,4 +45,7 @@ The main entry point is `pydict.py`, use help for more info.
 ./pydict.py --help
 ```
 
+## TODO List
+
+*   Enhance word extraction to handle more complex text structures and languages.
 

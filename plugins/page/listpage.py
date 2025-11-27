@@ -347,7 +347,6 @@ class MemorizeListPage(ListPage):
 
         # choose words by index.
         query_word = self.word_list[self.word_idx]
-
         if self.__flag_show_meaning:
             self.check_dictionary(query_word)
         else:

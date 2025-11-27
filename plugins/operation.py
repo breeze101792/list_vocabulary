@@ -185,14 +185,17 @@ class Operation:
         # default not show reviewed words.
         flag_reviewed_word = False
         flag_forgotten_word = None
+        flag_new_word = None
 
         for each_idx in range(1, args['#'] + 1):
             if args[str(each_idx)] == 'reverse':
                 flag_reverse = True
 
             if args[str(each_idx)] == 'new':
-                familiar_target = 1
-                times_target = 1
+                flag_new_word = True
+                flag_reviewed_word = True
+                flag_meaning = True
+                title = "New Words"
 
             if args[str(each_idx)] == 'forgotten':
                 flag_forgotten_word = True
@@ -212,7 +215,7 @@ class Operation:
         # dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
-        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, forgotten = flag_forgotten_word):
+        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, forgotten = flag_forgotten_word, today_new_words = flag_new_word):
             if len(each_word) < 3:
                 continue
             if times_target != -1 and each_word[times_idx] > times_target:
@@ -256,7 +259,7 @@ class Operation:
         if list_number != 0 and list_number < len(word_list):
             word_list = word_list[-list_number:]
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = False, announce = True, shuffle = True   )
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = True, announce = True, shuffle = True)
         list_page.run()
 
         return True
@@ -278,7 +281,7 @@ class Operation:
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'New Words.', meaning = False, announce = True, shuffle = True)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'New Words.', meaning = True, announce = True, shuffle = True)
         list_page.run()
 
         return True

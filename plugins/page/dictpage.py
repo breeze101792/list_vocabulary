@@ -23,6 +23,7 @@ class DictPage(PageCommandLineInterface):
         ## local variables
         self.dict_word_idx = 0
         self.dict_word_list = []
+        self.__flag_llm_search = False # default false
 
         ## reg functions
         # NOTE. currently, 3~5 is reserved.
@@ -32,7 +33,7 @@ class DictPage(PageCommandLineInterface):
         self.regist_key(["L"], self.key_cmd_llm, "Search the dictionary using an LLM.")
         self.regist_key(["v"], self.key_cmd_pronounce, "Pronounce the current word.")
         self.regist_cmd("search", self.cmd_search, "Search for words in the dictionary.")
-        self.regist_cmd("llm", self.cmd_llm, "Search for words using an LLM.", arg_list = ['remove', 'async'])
+        self.regist_cmd("llm", self.cmd_llm, "Search for words using an LLM.", arg_list = ['remove', 'async', 'search', 'store', 'on', 'off'])
         self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce a specified word.")
 
     def refresh(self, data = None):
@@ -42,13 +43,21 @@ class DictPage(PageCommandLineInterface):
         return self.def_content_handler(data)
 
     def check_dictionary(self, query_word):
+        self.page_reset()
         if query_word != "":
             self.dict_word_list = self.dict_mgr.search(query_word)
             # reset dict variables.
             self.dict_word_idx = 0
             if self.dict_word_list is not None and self.dict_word_list != []:
                 # self.print(f"{query_word} haven't been found in dictionary")
+                # If we get words, then try llm search.
+                if self.__flag_llm_search:
+                    llm = LLM()
+                    # Perform background search silently
+                    query = llm.openai_dict(query_word, cached = True, blocking = False, notify = lambda word: self.status_print(f"Finish updating LLM for {query_word}.") )
+                    # self.status_print(f"LLM search {query_word}, {query.meaning}")
                 return True
+
         return False
     def cmd_search(self, args):
         query_word = ""
@@ -63,6 +72,7 @@ class DictPage(PageCommandLineInterface):
         query_word = ""
         flag_cached = False
         flag_async = True
+        flag_store = True
         if args is not None and args["#"] == 2 and args["1"] == "remove":
             query_word = args["2"]
             llm = LLM()
@@ -85,10 +95,31 @@ class DictPage(PageCommandLineInterface):
             elif flag_switch == 'off':
                 flag_async = False
 
+        if args and 'store' in args:
+            flag_switch = args['store']
+            if flag_switch == 'on':
+                flag_store = True
+            elif flag_switch == 'off':
+                flag_store = False
+            else:
+                flag_store = False
+            flag_cached = False
+            flag_async = False
+
+        if args and 'search' in args:
+            flag_switch = args['search']
+            if flag_switch == 'on':
+                self.__flag_llm_search = True
+                self.status_print(f"Enable background llm dict search.")
+            elif flag_switch == 'off':
+                self.__flag_llm_search = False
+                self.status_print(f"Disable background llm dict search.")
+            return True
+
         llm = LLM()
         if flag_async is True:
             self.status_print(f"Search {query_word} on background.")
-            llm.openai_dict(query_word, cached = flag_cached, blocking = not flag_async, notify = lambda word: self.status_print(f"LLM Finishe: {word}") )
+            llm.openai_dict(query_word, cached = flag_cached, blocking = not flag_async, store = flag_store, notify = lambda word: self.status_print(f"LLM Finishe: {word}") )
         else:
             self.dict_word_idx = 0
             self.status_print("Thinking...")

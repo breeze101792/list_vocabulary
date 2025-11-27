@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import traceback
 import threading
 from openai import OpenAI
@@ -107,11 +108,13 @@ class LLM(Dictionary):
         )
         dbg_debug(f"system: {prompt}")
         dbg_debug(f"user: {message}")
+        # FIXME: Temporary solution to avoid hitting rate limits.
+        time.sleep(1)
 
         # print(response.choices[0].message.content)
         return response.choices[0].message.content
 
-    def _search_worker(self, query_word, notify = None):
+    def _search_worker(self, query_word, store = True, notify = None):
         prompt_definition = ""
         prompt_core = ""
         if LLM.language == 'english':
@@ -188,25 +191,28 @@ Please adhere to the following rules:
             response = self.ask(message = message, prompt = prompt)
 
             if len(response) < len(query_word) or response == "WORD NOT FOUND":
-                LLM.cached_data[query_word] = f"{query_word} not found. rep: {response}"
+                dbg_debug(f"{query_word} not found.")
+                notify(query_word + ". Word not found.")
             else:
-                LLM.cached_data[query_word] = response
                 if notify is not None:
                     notify(query_word)
                 dbg_info(f"Cached '{query_word}' to LLM cache.")
-            self._save_cache()
+                if store:
+                    LLM.cached_data[query_word] = response
+                    self._save_cache()
         except Exception as e:
             if query_word is not None:
-                LLM.cached_data[query_word] = f"Connection error. {query_word} not found."
-                self._save_cache()
-            dbg_error(e)
+                notify(query_word + ". Connection error.")
+            dbg_debug(e)
 
             traceback_output = traceback.format_exc()
-            dbg_error(traceback_output)
+            dbg_debug(traceback_output)
         finally:
             LLM.pending_searches.discard(query_word)
 
-    def openai_dict(self, query_word, cached = True, blocking = True, notify = None):
+        return response
+
+    def openai_dict(self, query_word, cached = True, blocking = True, store = True, notify = None):
 
         # if cached:
         if cached and query_word in LLM.cached_data:
@@ -218,12 +224,12 @@ Please adhere to the following rules:
             return word_obj
 
         if blocking is True:
-            self._search_worker(query_word)
+            response = self._search_worker(query_word, store = store)
 
             word_obj = PureWord()
             word_obj.word = query_word
             word_obj.dict_name = "LLM Dictionary"
-            word_obj.meaning = LLM.cached_data[query_word]
+            word_obj.meaning = response
             return word_obj
         else:
             with LLM._pending_lock:
@@ -235,7 +241,7 @@ Please adhere to the following rules:
                     return word_obj
                 LLM.pending_searches.add(query_word)
 
-            thread = threading.Thread(target=self._search_worker, args=(query_word,notify))
+            thread = threading.Thread(target=self._search_worker, args=(query_word, store, notify))
             thread.daemon = True
             thread.start()
 

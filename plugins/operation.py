@@ -56,6 +56,41 @@ class Operation:
         else:
             return []
 
+    def op_list_statistic(self, word_list):
+        word_set = set()
+        level_dict = {}
+        for each_level in range(1, 6):
+            level_word_list = [ word[0] for word in self.wordbank.quer_for_all_word(familiar = each_level) ]
+            level_dict[each_level] = set(level_word_list)
+            # tmp_set = set(level_word_list)
+            # word_set = word_set | tmp_set
+
+        level_cnt_dict = {1:0, 2:0, 3:0, 4:0, 5:0}
+        new_cnt = 0
+
+        for each_word in word_list:
+            if each_word in level_dict[1]:
+                level_cnt_dict[1] += 1
+            elif each_word in level_dict[2]:
+                level_cnt_dict[2] += 1
+            elif each_word in level_dict[3]:
+                level_cnt_dict[3] += 1
+            elif each_word in level_dict[4]:
+                level_cnt_dict[4] += 1
+            elif each_word in level_dict[5]:
+                level_cnt_dict[5] += 1
+            else:
+                new_cnt += 1
+
+        data = []
+        data.append([f"All", len(word_list)])
+        data.append([f"New", new_cnt])
+        for each_level in range(1, 6):
+            data.append([f"Level {each_level}", level_cnt_dict[each_level]])
+
+        headers = ['Statistic', 'Count']
+        self.__ui_print_line(tabulate(data, headers=headers, tablefmt="grid"))
+
     def def_search(self, args):
 
         dict_word=None
@@ -302,7 +337,7 @@ class Operation:
         # self.__listing_word(file_data.word_list, file_data.word_counter)
 
         # dbg_info(f"Len of list: {len(file_data.word_list)}", file_data.word_list)
-        list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
+        list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank, title = "Text vocabs.")
 
         list_page.run()
 
@@ -316,6 +351,15 @@ class Operation:
         else:
             self.__ui_print_line(f"Error: No file specified.")
             return False
+
+        if 'state' in args:
+            switch = args['state']
+            if switch == 'on':
+                flag_state = True
+            else:
+                flag_state = False
+        else:
+            flag_state = False
 
         # read file
         if not os.path.exists(file_name):
@@ -331,10 +375,11 @@ class Operation:
         file_data = FileData(text)
         file_data.do_word_list()
 
-        # self.__listing_word(file_data.word_list, file_data.word_counter)
-        list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank)
-
-        list_page.run()
+        if flag_state:
+            self.op_list_statistic(word_list)
+        else:
+            list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank, title = "File vocabs.")
+            list_page.run()
 
         return True
     def cmd_vocabs_builder_input(self, args):
@@ -345,6 +390,16 @@ class Operation:
             self.__ui_print_line(f"Error: No file specified.")
             return False
 
+        if 'state' in args:
+            switch = args['state']
+            if switch == 'on':
+                flag_state = True
+            else:
+                flag_state = False
+        else:
+            flag_state = False
+
+
         # for koreader.
         con = sqlite3.connect(file_name)
         cur = con.cursor()
@@ -353,9 +408,12 @@ class Operation:
             word_list.append(word)
         con.close()
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank)
+        if flag_state:
+            self.op_list_statistic(word_list)
+        else:
+            list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = "Vocabs Builder.")
+            list_page.run()
 
-        list_page.run()
         return True
     def cmd_json_input(self, args = None):
         file_name = ""
@@ -399,30 +457,3 @@ class Operation:
             self.dict_mgr.word_list_dict.cleanAll()
         return True
 
-#
-# class EUIMode(Enum):
-#     WORD = auto()
-#     INTERCTIVE = auto()
-#     FILE = auto()
-#     LIST = auto()
-#     MAX = auto()
-
-if __name__ == '__main__':
-    psettings = Settings()
-    psettings.set('debug', True)
-    psettings.set('database', 'debug.db')
-    psettings.set('file_name', "./data/i_have_a_dream.txt")
-
-    my_dict = SECDict()
-
-    wordbank = WordBank()
-    wordbank.db__init()
-    wordbank.connect()
-    my_dict = SECDict()
-
-    test_cli = CommandLineInterface(settings = psettings, wordbank = wordbank, dictionary = my_dict)
-    test_cli.ui_print_line("CLI Initailization")
-    test_cli.read_file()
-    # test_cli.set_mode(EUIMode.FILE)
-    test_cli.set_mode(EUIMode.INTERCTIVE)
-    test_cli.run()

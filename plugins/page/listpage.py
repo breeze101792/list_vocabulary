@@ -47,8 +47,8 @@ class ListPage(DictPage):
         # tupple (left, right)
         return (status_left,status_middle, status_right)
 
-    def refresh(self, data = None):
-        return self.def_content_handler(data)
+    # def refresh(self, data = None):
+    #     return self.def_content_handler(data)
 
     def key_walk_list(self, key_press, data = None):
         # move index

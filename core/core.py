@@ -48,10 +48,10 @@ class Core(CommandLineInterface):
         self.regist_cmd("new", operation.cmd_new_words, description="Display today's newly added vocabulary.", arg_list = ['familiar'],  group='ui')
 
         # input
-        self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", group='input')
         self.regist_cmd("text", operation.cmd_text_input, description="Input a list of words directly and start an interactive learning session.", group='input')
-        self.regist_cmd("vbuilder", operation.cmd_vocabs_builder_input, description="Read vocabulary from a Koreader sqlite3 database file.", group='input')
         self.regist_cmd("json", operation.cmd_json_input, description="Read vocabulary from a customize dictionary/json file, and show memorize list.", group='input')
+        self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", arg_list = ['state'], group='input')
+        self.regist_cmd("vbuilder", operation.cmd_vocabs_builder_input, description="Read vocabulary from a Koreader sqlite3 database file.", arg_list = ['state'], group='input')
 
         # debug commands
         self.regist_cmd("dump_vocabulary", operation.dump_vocabulary, description="Display all words currently stored in the user's vocabulary bank.", group = 'debug')

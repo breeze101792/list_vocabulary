@@ -7,6 +7,7 @@ import time
 import subprocess as sp
 import sqlite3
 from tabulate import tabulate
+from core.config import AppConfigManager
 
 from utility.utils import getch
 from utility.debug import *
@@ -85,7 +86,10 @@ class Operation:
         data = []
         data.append([f"All", len(word_list)])
         data.append([f"New", new_cnt])
+        data.append([f"Learned", len(word_list) - new_cnt])
         for each_level in range(1, 6):
+            if level_cnt_dict[each_level] == 0:
+                continue
             data.append([f"Level {each_level}", level_cnt_dict[each_level]])
 
         headers = ['Statistic', 'Count']
@@ -171,6 +175,71 @@ class Operation:
                 self.__ui_print_line(each_word)
 
         return True
+    def cmd_list(self, args):
+        appcgm = AppConfigManager()
+        list_config = os.path.join(appcgm.get_path('language'),"list.cfg")
+        
+        # ['do', 'set', 'get']
+        flag_action = 'do'
+        var_file = ""
+        var_type = ""
+
+        for each_idx in range(1, args['#'] + 1):
+            if args[str(each_idx)] == 'do':
+                flag_action = 'do'
+            if args[str(each_idx)] == 'set':
+                flag_action = 'set'
+            if args[str(each_idx)] == 'get':
+                flag_action = 'get'
+
+        if 'file' in args:
+            var_file = args['file']
+        else:
+            with open(list_config, 'r') as f:
+                var_file = f.readline().strip()
+
+        # if 'type' in args:
+        #     ['json', 'sqlite3', 'txt']
+        #     var_type = args['type']
+
+        if var_file != "" and var_type == "":
+            if var_file.endswith('json'):
+                var_type = "json"
+            elif var_file.endswith('sqlite3'):
+                var_type = "sqlite3"
+            else:
+                var_type = "text"
+
+        if flag_action == 'set':
+            with open(list_config, 'w') as f:
+                f.write(var_file + '\n')
+        elif flag_action == 'get':
+            self.__ui_print_line(f"type: {var_type}, file: {var_file}")
+
+            new_args = {'#': 0}
+            new_args['stats'] = args.get('stats', 'on')
+
+            if var_type == 'text':
+                self.cmd_file_input(file = var_file, args = file)
+            elif var_type == 'json':
+                self.cmd_json_input(file = var_file)
+            elif var_type == 'sqlite3':
+                self.cmd_vocabs_builder_input(file = var_file, args = new_args)
+        elif flag_action == 'do':
+            self.__ui_print_line(f"type: {var_type}, file: {var_file}")
+
+            new_args = {'#': 0}
+            new_args['stats'] = args.get('stats', 'off')
+
+            if var_type == 'text':
+                self.cmd_file_input(file = var_file, args = file)
+            elif var_type == 'json':
+                self.cmd_json_input(file = var_file)
+            elif var_type == 'sqlite3':
+                self.cmd_vocabs_builder_input(file = var_file, args = new_args)
+
+        return True
+
     def cmd_statistic(self, args):
         # {1: 75, 2: 153, 3: 0, 4: 0, 5: 0}
         stats = self.wordbank.query_for_statistic()
@@ -186,6 +255,8 @@ class Operation:
 
         data = list()
         for key in stats.keys():
+            if stats[key] == 0:
+                continue
             data.append([f'Level {key}', stats[key]])
 
         data.append([f"Reviewed", reviewed_count])
@@ -342,24 +413,29 @@ class Operation:
         list_page.run()
 
         return True
-    def cmd_file_input(self, args):
+    def cmd_file_input(self, args = None, file = None):
         file_name = ""
-        if args['#'] == 1:
-            file_name = args['1']
-            if file_name == "sample":
-                file_name = "./data/i_have_a_dream.txt"
-        else:
-            self.__ui_print_line(f"Error: No file specified.")
-            return False
+        flag_stats = False
+        if file is not None:
+            file_name = file
 
-        if 'state' in args:
-            switch = args['state']
-            if switch == 'on':
-                flag_state = True
+        if args is not None:
+            if args['#'] == 1:
+                file_name = args['1']
+                if file_name == "sample":
+                    file_name = "./data/i_have_a_dream.txt"
+            # else:
+            #     self.__ui_print_line(f"Error: No file specified.")
+            #     return False
+
+            if 'stats' in args:
+                switch = args['stats']
+                if switch == 'on':
+                    flag_stats = True
+                else:
+                    flag_stats = False
             else:
-                flag_state = False
-        else:
-            flag_state = False
+                flag_stats = False
 
         # read file
         if not os.path.exists(file_name):
@@ -375,29 +451,34 @@ class Operation:
         file_data = FileData(text)
         file_data.do_word_list()
 
-        if flag_state:
+        if flag_stats:
             self.op_list_statistic(word_list)
         else:
             list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank, title = "File vocabs.")
             list_page.run()
 
         return True
-    def cmd_vocabs_builder_input(self, args):
+    def cmd_vocabs_builder_input(self, args = None, file = None):
         file_name = ""
-        if args['#'] == 1:
-            file_name = args['1']
-        else:
-            self.__ui_print_line(f"Error: No file specified.")
-            return False
+        flag_stats = False
+        if file is not None:
+            file_name = file
 
-        if 'state' in args:
-            switch = args['state']
-            if switch == 'on':
-                flag_state = True
+        if args is not None:
+            if args['#'] == 1:
+                file_name = args['1']
+            # else:
+            #     self.__ui_print_line(f"Error: No file specified.")
+            #     return False
+
+            if 'stats' in args:
+                switch = args['stats']
+                if switch == 'on':
+                    flag_stats = True
+                else:
+                    flag_stats = False
             else:
-                flag_state = False
-        else:
-            flag_state = False
+                flag_stats = False
 
 
         # for koreader.
@@ -408,20 +489,24 @@ class Operation:
             word_list.append(word)
         con.close()
 
-        if flag_state:
+        if flag_stats:
             self.op_list_statistic(word_list)
         else:
             list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = "Vocabs Builder.")
             list_page.run()
 
         return True
-    def cmd_json_input(self, args = None):
+    def cmd_json_input(self, args = None, file = None):
         file_name = ""
-        if args['#'] == 1:
-            file_name = args['1']
-        else:
-            self.__ui_print_line(f"Error: No file specified.")
-            return False
+        if file is not None:
+            file_name = file
+
+        if args is not None:
+            if args['#'] == 1:
+                file_name = args['1']
+            # else:
+            #     self.__ui_print_line(f"Error: No file specified.")
+            #     return False
 
         # read file
         if not os.path.exists(file_name):

@@ -53,6 +53,8 @@ class Core(CommandLineInterface):
         self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", arg_list = ['state'], group='input')
         self.regist_cmd("vbuilder", operation.cmd_vocabs_builder_input, description="Read vocabulary from a Koreader sqlite3 database file.", arg_list = ['state'], group='input')
 
+        self.regist_cmd("list", operation.cmd_list, description="Set list for memorize.", arg_list = ['set', 'get', 'file', 'stats'], group='input')
+
         # debug commands
         self.regist_cmd("dump_vocabulary", operation.dump_vocabulary, description="Display all words currently stored in the user's vocabulary bank.", group = 'debug')
         self.regist_cmd("dump_config", appcgm.dump, description="Display the current application configuration settings.", group = 'debug')

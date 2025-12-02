@@ -115,15 +115,17 @@ class LLM(Dictionary):
         return response.choices[0].message.content
 
     def _search_worker(self, query_word, store = True, notify = None):
-        prompt_definition = ""
+        prompt_definition = f""" 
+ * Definition: Definition part should include the definition and word/phrase traslation.
+            """
         prompt_core = ""
+
         if LLM.language == 'english':
             prompt_core = """
  - English: Core meaning in English
  - Chinese: Core meaning in Chinese traditional
             """
-            prompt_definition = f""" 
- * Definition:
+            prompt_definition += f""" 
   - English: Definition in English
   - Chinese: Definition in Chinese traditional
  * Example sentences:
@@ -135,8 +137,7 @@ class LLM(Dictionary):
  - Chinese: Core meaning in Chinese traditional
  - English: Core meaning in English
             """
-            prompt_definition = f""" 
- * Definition:
+            prompt_definition += f""" 
   - Chinese: Definition in Chinese traditional
   - English: Definition in English
  * Example sentences:
@@ -149,8 +150,7 @@ class LLM(Dictionary):
  - Chinese: Core meaning in Chinese traditional
  - English: Core meaning in English
             """
-            prompt_definition = f""" 
- * Definition:
+            prompt_definition += f""" 
   - {LLM.language}: Definition in {LLM.language}
   - Chinese: Definition in Chinese traditional
   - English: Definition in English

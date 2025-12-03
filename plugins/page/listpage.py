@@ -160,22 +160,25 @@ class MemorizeListPage(ListPage):
         if 'known' in args:
             flag_switch = args['known']
             if flag_switch == 'on':
-                self.__flag_ignore_known_words = False
-            elif flag_switch == 'off':
                 self.__flag_ignore_known_words = True
+            elif flag_switch == 'off':
+                self.__flag_ignore_known_words = False
 
         if 'reviewed' in args:
             flag_switch = args['reviewed']
             if flag_switch == 'on':
-                self.__flag_ignore_reviewed_words = False
-            elif flag_switch == 'off':
                 self.__flag_ignore_reviewed_words = True
+            elif flag_switch == 'off':
+                self.__flag_ignore_reviewed_words = False
 
         if args["#"] == 1 and args["1"] in ['on', 'off', 'reset']:
             flag_switch = args["1"]
             if flag_switch == 'on':
                 self.__flag_ignore_reviewed_words = True
                 self.__flag_ignore_known_words = True
+            elif flag_switch == 'off':
+                self.__flag_ignore_reviewed_words = False
+                self.__flag_ignore_known_words = False
             elif flag_switch == 'off' or flag_switch == 'reset':
                 self.__flag_ignore_reviewed_words = False
                 self.__flag_ignore_known_words = False

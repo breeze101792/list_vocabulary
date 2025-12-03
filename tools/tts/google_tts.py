@@ -32,6 +32,21 @@ def generate_audio_stream(text: str, lang: str) -> io.BytesIO:
         print("Warning: gTTS generated an empty audio stream.")
     return mp3_fp
 
+def save_audio_stream_to_file(audio_io: io.BytesIO, output_path: str):
+    """
+    Saves an audio stream to a specified file.
+
+    Args:
+        audio_io (io.BytesIO): A BytesIO object containing the audio data.
+        output_path (str): The path to the file where the audio should be saved.
+    """
+    try:
+        with open(output_path, "wb") as f:
+            f.write(audio_io.getvalue())
+        print(f"Audio successfully saved to {output_path}")
+    except IOError as e:
+        print(f"Error saving audio to file {output_path}: {e}")
+
 def play_audio_stream(audio_io: io.BytesIO):
     """
     Plays an audio stream (WAV or MP3 format).
@@ -70,6 +85,13 @@ if __name__ == "__main__":
                         help="The text to convert to speech.")
     parser.add_argument("-l", "--lang", type=str, default="en",
                         help="The language code for the text (e.g., 'en', 'es').")
+    parser.add_argument("-o", "--output", type=str,
+                        help="Optional: Path to save the generated audio file (e.g., 'output.mp3').")
     args = parser.parse_args()
 
-    speak_text(args.text, args.lang)
+    audio_stream = generate_audio_stream(args.text, args.lang)
+
+    if args.output:
+        save_audio_stream_to_file(audio_stream, args.output)
+    else:
+        play_audio_stream(audio_stream)

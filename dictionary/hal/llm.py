@@ -164,7 +164,7 @@ class LLM(Dictionary):
 You are a detailed multilingual dictionary engine.
 When the user gives you a {LLM.language} word, provide the following details in plain text:
 
-Word: the exact word typed
+Word: the exact word typed and its original form.
 
 Core meaning: Extract the core meaning of the word. The core meaning is the most basic, original, and central conceptual idea from which all extended senses, metaphorical uses, and phrasal uses can logically develop. Provide the core meaning as a single, concise English definition with an appropriate level of abstraction, avoiding overly specific contexts or examples. Show it on the following languages.
 {prompt_core}
@@ -174,16 +174,21 @@ Meaning 1: For each meaning, provide the following in this exact order and style
 {prompt_definition}
 
 Related phrases: list start with ' - ', include the one-lined meaning with it.
+
 Related words: list start with ' - ', include the one-lined meaning with it.
+
 Original form and origin: include lemma, verb tense, other forms, and etymology
+
 Story / interesting facts: if the word has notable history, anecdotes, or cultural context, include it. If not, skip this section.
+
+Word Forms: List all grammatical inflections and morphological variations of the word, including tenses, conjugations, plurals, and comparative forms if applicable.
 
 Please adhere to the following rules:
 1. Present each meaning separately, accompanied by its own examples.
 2. Use only spaces for indentation; avoid bullets, dashes, or any other special formatting.
 3. Do not use Markdown syntax; provide plain, readable text only.
 4. If the word is not valid in {LLM.language}, respond with "WORD NOT FOUND".
-5. Unless otherwise specified, provide explanations in English.
+5. Unless otherwise specified, provide explanations in English/Chinese.
         """
         message = f"Please provide the dictionary content for the {LLM.language} word '{query_word}'"
 

@@ -11,9 +11,9 @@ import threading
 
 from utility.debug import *
 class Pronunciation:
+    buffer_dictionary = {}
     def __init__(self):
         self.__max_buffer_count = 100
-        self.buffer_dictionary = {}
         self.current_playback_thread: threading.Thread | None = None
         self.stop_current_playback_event: threading.Event = threading.Event()
         self.thread_management_lock = threading.Lock()
@@ -122,19 +122,19 @@ class Pronunciation:
         """
         try:
             key = f"{text}-{lang}"
-            if key in self.buffer_dictionary:
-                audio_stream = self.buffer_dictionary[key]
+            if key in Pronunciation.buffer_dictionary:
+                audio_stream = Pronunciation.buffer_dictionary[key]
                 audio_stream.seek(0) # Rewind the stream to play from the beginning
             else:
                 audio_stream = self.generate_audio_stream(text, lang)
                 # TODO, check if dictionary is too big then we remove some of it.
 
-                self.buffer_dictionary[key] = audio_stream
+                Pronunciation.buffer_dictionary[key] = audio_stream
                 # If the buffer dictionary grows too large, remove the oldest item
-                if len(self.buffer_dictionary) > self.__max_buffer_count:
+                if len(Pronunciation.buffer_dictionary) > self.__max_buffer_count:
                     # Remove the first item (oldest) to keep the dictionary size manageable
-                    oldest_key = next(iter(self.buffer_dictionary))
-                    del self.buffer_dictionary[oldest_key]
+                    oldest_key = next(iter(Pronunciation.buffer_dictionary))
+                    del Pronunciation.buffer_dictionary[oldest_key]
 
             # Check if a new request has come in while generating audio
             if self.stop_current_playback_event.is_set():
@@ -148,8 +148,8 @@ class Pronunciation:
             dbg_error(traceback_output)
             # if anything happens, we just clear the buffer.
             # if anything happens, we just clear the buffer.
-            if key in self.buffer_dictionary:
-                del self.buffer_dictionary[key]
+            if key in Pronunciation.buffer_dictionary:
+                del Pronunciation.buffer_dictionary[key]
 
     def speak_text(self, text: str, lang: str, is_async: bool = True):
         """

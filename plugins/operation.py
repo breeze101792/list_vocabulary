@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import datetime
 import random
 import threading
 import traceback
@@ -189,8 +190,8 @@ class Operation:
                 flag_action = 'do'
             if args[str(each_idx)] == 'set':
                 flag_action = 'set'
-            if args[str(each_idx)] == 'get':
-                flag_action = 'get'
+            if args[str(each_idx)] == 'stats':
+                flag_action = 'stats'
 
         if 'file' in args:
             var_file = args['file']
@@ -213,7 +214,7 @@ class Operation:
         if flag_action == 'set':
             with open(list_config, 'w') as f:
                 f.write(var_file + '\n')
-        elif flag_action == 'get':
+        elif flag_action == 'stats':
             self.__ui_print_line(f"type: {var_type}, file: {var_file}")
 
             new_args = {'#': 0}
@@ -282,6 +283,7 @@ class Operation:
         word_idx = 0
         times_idx = 1
         familiar_idx = 2
+        timestamp_idx = 3
 
         familiar_target = 1
         times_target = -1
@@ -292,6 +294,7 @@ class Operation:
         flag_reviewed_word = False
         flag_forgotten_word = None
         flag_new_word = None
+        review_interval = 0
 
         for each_idx in range(1, args['#'] + 1):
             if args[str(each_idx)] == 'reverse':
@@ -309,6 +312,15 @@ class Operation:
                 flag_meaning = True
                 title = "Forgotten Words"
 
+            if args[str(each_idx)] == 'review':
+                list_number = 50
+                familiar_target = 2
+                flag_forgotten_word = None
+                flag_reviewed_word = None
+                flag_meaning = False
+                title = "Review Words"
+                review_interval = 7
+
         if 'familiar' in args:
             familiar_target = int(args['familiar'])
 
@@ -318,6 +330,9 @@ class Operation:
         if 'number' in args:
             list_number = int(args['number'])
 
+        if 'interval' in args:
+            review_interval = int(args['interval'])
+
         # dbg_info("Change familiar level to {}.".format(familiar_target))
 
         word_list = []
@@ -326,6 +341,12 @@ class Operation:
                 continue
             if times_target != -1 and each_word[times_idx] > times_target:
                 continue
+
+            if review_interval > 0:
+                today_date = datetime.now().date()
+                word_date = datetime.fromtimestamp(each_word[timestamp_idx]).date()
+                if (today_date - word_date).days < review_interval:
+                    continue
 
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])

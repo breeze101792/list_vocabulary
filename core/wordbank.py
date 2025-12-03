@@ -97,7 +97,8 @@ class WordBank(uDatabase):
                     stats[level] = count
         return stats
     def quer_for_all_word(self, times = None, familiar = None, forgotten = None, today_new_words = False, reviewed = False):
-        query_str = """SELECT word, times, familiar, forgotten FROM WORD"""
+        query_str = """SELECT word, times, familiar, timestamp, forgotten FROM WORD"""
+        sort = True
         conditions = []
         if times is not None:
             conditions.append(f"times == {times}")
@@ -120,6 +121,10 @@ class WordBank(uDatabase):
 
         if conditions:
             query_str += " WHERE " + " AND ".join(conditions)
+
+        if sort:
+            # query_str += "  ORDER BY timestamp ASC"
+            query_str += "  ORDER BY timestamp DESC"
 
         dbg_debug(query_str)
         result = self.execute(query_str)

@@ -116,7 +116,7 @@ class LLM(Dictionary):
 
     def _search_worker(self, query_word, store = True, notify = None):
         prompt_definition = f""" 
- * Definition: Definition part should include the definition and word/phrase traslation.
+ * Translation/Definition: This part should include the traslation and definition.
             """
         prompt_core = ""
 
@@ -126,8 +126,8 @@ class LLM(Dictionary):
  - Chinese: Core meaning in Chinese traditional
             """
             prompt_definition += f""" 
-  - English: Definition in English
-  - Chinese: Definition in Chinese traditional
+  - English: Translation/Definition in English
+  - Chinese: Translation/Definition in Chinese traditional
  * Example sentences:
   - {LLM.language} sentence
     (Chinese traditional translation)
@@ -138,8 +138,8 @@ class LLM(Dictionary):
  - English: Core meaning in English
             """
             prompt_definition += f""" 
-  - Chinese: Definition in Chinese traditional
-  - English: Definition in English
+  - Chinese: Translation/Definition in Chinese traditional
+  - English: Translation/Definition in English
  * Example sentences:
   - {LLM.language} sentence
     (English translation)
@@ -151,9 +151,9 @@ class LLM(Dictionary):
  - English: Core meaning in English
             """
             prompt_definition += f""" 
-  - {LLM.language}: Definition in {LLM.language}
-  - Chinese: Definition in Chinese traditional
-  - English: Definition in English
+  - {LLM.language}: Translation/Definition in {LLM.language}
+  - Chinese: Translation/Definition in Chinese traditional
+  - English: Translation/Definition in English
  * Example sentences:
   - {LLM.language} sentence
     (English translation / Chinese translation)

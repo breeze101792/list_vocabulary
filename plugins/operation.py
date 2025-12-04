@@ -195,9 +195,12 @@ class Operation:
 
         if 'file' in args:
             var_file = args['file']
-        else:
+        elif os.path.exists(list_config):
             with open(list_config, 'r') as f:
                 var_file = f.readline().strip()
+        else:
+            self.__ui_print_line("Please specify file first")
+            return False
 
         # if 'type' in args:
         #     ['json', 'sqlite3', 'txt']
@@ -221,9 +224,9 @@ class Operation:
             new_args['stats'] = args.get('stats', 'on')
 
             if var_type == 'text':
-                self.cmd_file_input(file = var_file, args = file)
+                self.cmd_file_input(file = var_file, args = new_args)
             elif var_type == 'json':
-                self.cmd_json_input(file = var_file)
+                self.cmd_json_input(file = var_file, args = new_args)
             elif var_type == 'sqlite3':
                 self.cmd_vocabs_builder_input(file = var_file, args = new_args)
         elif flag_action == 'do':
@@ -233,9 +236,9 @@ class Operation:
             new_args['stats'] = args.get('stats', 'off')
 
             if var_type == 'text':
-                self.cmd_file_input(file = var_file, args = file)
+                self.cmd_file_input(file = var_file, args = new_args)
             elif var_type == 'json':
-                self.cmd_json_input(file = var_file)
+                self.cmd_json_input(file = var_file, args = new_args)
             elif var_type == 'sqlite3':
                 self.cmd_vocabs_builder_input(file = var_file, args = new_args)
 
@@ -473,7 +476,7 @@ class Operation:
         file_data.do_word_list()
 
         if flag_stats:
-            self.op_list_statistic(word_list)
+            self.op_list_statistic(file_data.word_list)
         else:
             list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank, title = "File vocabs.")
             list_page.run()
@@ -519,6 +522,7 @@ class Operation:
         return True
     def cmd_json_input(self, args = None, file = None):
         file_name = ""
+        flag_stats = False
         if file is not None:
             file_name = file
 
@@ -528,6 +532,15 @@ class Operation:
             # else:
             #     self.__ui_print_line(f"Error: No file specified.")
             #     return False
+
+            if 'stats' in args:
+                switch = args['stats']
+                if switch == 'on':
+                    flag_stats = True
+                else:
+                    flag_stats = False
+            else:
+                flag_stats = False
 
         # read file
         if not os.path.exists(file_name):
@@ -551,8 +564,11 @@ class Operation:
                     word = entry["word"]
                     json_word_list.append(word)
 
-            list_page = MemorizeListPage(wordlist = json_word_list, wordbank = self.wordbank, title = 'Json Words.', meaning = True)
-            list_page.run()
+            if flag_stats:
+                self.op_list_statistic(json_word_list)
+            else:
+                list_page = MemorizeListPage(wordlist = json_word_list, wordbank = self.wordbank, title = 'Json Words.', meaning = True)
+                list_page.run()
 
         except Exception as e:
             dbg_error(e)

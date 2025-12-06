@@ -33,30 +33,30 @@ class Core(CommandLineInterface):
         self.history_path = os.path.join(appcgm.get_path('log'), f'{language}_command.history')
 
         # register commands
-        # legacy
-        self.regist_cmd("fuzzy", operation.fuzzy, description="Fuzzy search for a word in the dictionary and display suggestions.", group = 'legacy')
-        self.regist_cmd("search", operation.search, description="Search for a specific word in the dictionary and display its meaning.", group = 'legacy')
 
+        # config
+        self.regist_cmd("freq", operation.cmd_freq, description="Set frequency list.", arg_list = ['set', 'enable', 'disable', 'show', 'file'], group='config')
 
         # ui functions
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')
-        self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.")
+        self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.", group='ui')
 
         # memorize words
-        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten', 'review'],  group='ui')
+        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten', 'review', 'interval'],  group='ui')
         self.regist_cmd("forgotten", operation.cmd_forgotten_words, description="Memorize forgotten vocabulary based on familiarity level.", arg_list = ['familiar', 'number'],  group='ui')
         self.regist_cmd("new", operation.cmd_new_words, description="Display today's newly added vocabulary.", arg_list = ['familiar'],  group='ui')
 
         # input
-        self.regist_cmd("text", operation.cmd_text_input, description="Input a list of words directly and start an interactive learning session.", group='input')
-        self.regist_cmd("json", operation.cmd_json_input, description="Read vocabulary from a customize dictionary/json file, and show memorize list.", group='input')
-        self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", arg_list = ['stats'], group='input')
-        self.regist_cmd("vbuilder", operation.cmd_vocabs_builder_input, description="Read vocabulary from a Koreader sqlite3 database file.", arg_list = ['stats'], group='input')
+        input_args = ['state', 'reviewed', 'known', 'stats']
+        self.regist_cmd("text", operation.cmd_text_input, description="Input a list of words directly and start an interactive learning session.", arg_list = input_args, group='input')
+        self.regist_cmd("json", operation.cmd_json_input, description="Read vocabulary from a customize dictionary/json file, and show memorize list.", arg_list = ['file'] + input_args, group='input')
+        self.regist_cmd("file", operation.cmd_file_input, description="Read words from a specified file and start an interactive learning session.", arg_list = ['file'] + input_args, group='input')
+        self.regist_cmd("vbuilder", operation.cmd_vocabs_builder_input, description="Read vocabulary from a Koreader sqlite3 database file.", arg_list = ['file'] + input_args, group='input')
 
         self.regist_cmd("list", operation.cmd_list, description="Set list for memorize.", arg_list = ['set', 'file', 'stats'], group='input')
 
         # debug commands
-        self.regist_cmd("dump_vocabulary", operation.dump_vocabulary, description="Display all words currently stored in the user's vocabulary bank.", group = 'debug')
+        self.regist_cmd("dump_vocabulary", operation.dump_vocabulary, description="Display all words currently stored in the user's vocabulary bank.", arg_list = ['file_name'], group = 'debug')
         self.regist_cmd("dump_config", appcgm.dump, description="Display the current application configuration settings.", group = 'debug')
         self.regist_cmd("dump_db", self.debug_cmd_dump_db, description="Display all tables and their contents in the vocabulary database.", group = 'debug')
         self.regist_cmd("dump_dict", dict_mgr.list_dictionary, description="List all available dictionaries.", group = 'debug')

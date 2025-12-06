@@ -8,7 +8,7 @@ from dictionary.word import PureWord
 from plugins.page.dictpage import DictPage, DictData 
 
 class ListPage(DictPage):
-    def __init__(self, wordlist, *args, title = "List Words", shuffle = False, **kwargs):
+    def __init__(self, wordlist, *args, title = "List Words", shuffle = False, freq_dict = {}, **kwargs):
         super().__init__(*args, title = title, **kwargs)
         ### local vars ###
         self.word_list = wordlist
@@ -21,6 +21,7 @@ class ListPage(DictPage):
         self.share_data.current_word = ""
         # manual trigger first update.
         # self.def_content_handler()
+        self.__freq_dict = freq_dict
 
         self.regist_key(["n", "p"], self.key_walk_list, "Navigate the word list.")
 
@@ -42,7 +43,13 @@ class ListPage(DictPage):
             status_left = f"Page: {self.dict_word_idx + 1}/{len(self.dict_word_list)}, {self.dict_word_list[self.dict_word_idx].dict_name} "
         else:
             status_left = f"Page: 0/0 "
-        status_middle = f"{self.share_data.current_word}"
+
+        if self.__freq_dict.get(self.share_data.current_word, 0) > 0:
+            freq_status = f"{self.__freq_dict.get(self.share_data.current_word, '0')}"
+            status_middle = f"{self.share_data.current_word} ({freq_status})"
+        else:
+            status_middle = f"{self.share_data.current_word}"
+        # status_middle = f"{self.share_data.current_word}"
         status_right = f"{self.word_idx + 1}/{len(self.word_list)} "
         # tupple (left, right)
         return (status_left,status_middle, status_right)

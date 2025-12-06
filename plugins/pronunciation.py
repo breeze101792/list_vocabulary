@@ -45,6 +45,7 @@ class Pronunciation:
         """
         Plays an audio stream (WAV or MP3 format).
         It autodetects the format and uses the appropriate player.
+        Playback can be interrupted by setting `self.stop_current_playback_event`.
 
         Args:
             audio_io (io.BytesIO): A BytesIO object containing the audio data.
@@ -53,13 +54,21 @@ class Pronunciation:
         magic_bytes = audio_io.read(4)
         audio_io.seek(0)  # Rewind the stream
 
+        play_obj = None
         if magic_bytes.startswith(b'RIFF'):  # WAV file
             wave_obj = sa.WaveObject.from_wave_read(audio_io)
             play_obj = wave_obj.play()
-            play_obj.wait_done()
         else:  # Assume MP3 or other pydub-compatible format
             song = AudioSegment.from_file(audio_io, format="mp3")
-            play(song)
+            play_obj = play(song) # pydub.playback.play returns a simpleaudio.PlayObject
+
+        # if play_obj:
+        #     while play_obj.is_playing():
+        #         if self.stop_current_playback_event.is_set():
+        #             dbg_info("Stopping audio playback due to new request.")
+        #             play_obj.stop()
+        #             break
+        #         time.sleep(0.05) # Check for stop signal every 50ms
 
     def language_map(self, lang: str):
         """

@@ -26,6 +26,10 @@ class Operation:
     def __init__(self, wordbank = None):
         self.wordbank = wordbank
         self.dict_mgr = DictMgr()
+        self.freq_dict = {}
+
+        # post init
+        self.cmd_freq(enable=True)
 
     def __ui_print(self, *args):
         print("".join(map(str,args)), end="")
@@ -61,17 +65,19 @@ class Operation:
     def op_list_statistic(self, word_list):
         word_set = set()
         level_dict = {}
-        for each_level in range(1, 6):
+        for each_level in range(0, 6):
             level_word_list = [ word[0] for word in self.wordbank.quer_for_all_word(familiar = each_level) ]
             level_dict[each_level] = set(level_word_list)
             # tmp_set = set(level_word_list)
             # word_set = word_set | tmp_set
 
-        level_cnt_dict = {1:0, 2:0, 3:0, 4:0, 5:0}
+        level_cnt_dict = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0}
         new_cnt = 0
 
         for each_word in word_list:
-            if each_word in level_dict[1]:
+            if each_word in level_dict[0]:
+                level_cnt_dict[0] += 1
+            elif each_word in level_dict[1]:
                 level_cnt_dict[1] += 1
             elif each_word in level_dict[2]:
                 level_cnt_dict[2] += 1
@@ -92,6 +98,7 @@ class Operation:
             if level_cnt_dict[each_level] == 0:
                 continue
             data.append([f"Level {each_level}", level_cnt_dict[each_level]])
+        data.append([f"Others", level_cnt_dict[0]])
 
         headers = ['Statistic', 'Count']
         self.__ui_print_line(tabulate(data, headers=headers, tablefmt="grid"))
@@ -117,43 +124,6 @@ class Operation:
             dict_word.show_meaning()
             if self.wordbank.insert(dict_word.word):
                 self.wordbank.commit()
-            return True
-    def search(self, args):
-
-        dict_word_list=None
-        # dbg_trace(args)
-        # arg_dict = ArgParser.args_parser(args)
-        arg_dict = args
-        arg_key = list(arg_dict.keys())
-
-        # print(arg_dict[arg_key[0]])
-        dict_word_list = self.__search_word(arg_dict[arg_key[1]])
-        if len(dict_word_list) > 0:
-            dict_word_list[0].show_meaning()
-            if self.wordbank.insert(dict_word_list[0].word):
-                self.wordbank.commit()
-            return True
-        else:
-            word_list = self.__suggest(arg_dict[arg_key[1]])
-            if word_list is False:
-                return False
-            else:
-                self.__ui_print_line(word_list)
-            # self.__ui_print_line('No such word.')
-    def fuzzy(self, args):
-        # dbg_trace(args)
-        # arg_dict = ArgParser.args_parser(args)
-        arg_dict = args
-        arg_key = list(arg_dict.keys())
-
-        # print(arg_dict[arg_key[0]])
-        word_list = self.__suggest(arg_dict[arg_key[1]])
-        dbg_debug('word list: ', word_list)
-        if word_list is False:
-            self.__ui_print_line('No such word.')
-            return False
-        else:
-            self.__ui_print_line(word_list)
             return True
     def dump_vocabulary(self, args):
 
@@ -202,10 +172,6 @@ class Operation:
             self.__ui_print_line("Please specify file first")
             return False
 
-        # if 'type' in args:
-        #     ['json', 'sqlite3', 'txt']
-        #     var_type = args['type']
-
         if var_file != "" and var_type == "":
             if var_file.endswith('json'):
                 var_type = "json"
@@ -234,6 +200,9 @@ class Operation:
 
             new_args = {'#': 0}
             new_args['stats'] = args.get('stats', 'off')
+            new_args['freq'] = "on"
+            new_args['reviewed'] = "off"
+            new_args['known'] = "off"
 
             if var_type == 'text':
                 self.cmd_file_input(file = var_file, args = new_args)
@@ -415,8 +384,140 @@ class Operation:
         list_page.run()
 
         return True
+    def cmd_freq(self, args = None, enable = None):
+        flag_action = ""
+        file_name = ""
+        freq_list_name = 'freq.list'
+        if enable is not None:
+            if enable is True:
+                flag_action = 'enable'
+            else:
+                flag_action = 'disable'
+
+        if args is not None:
+            if args['#'] == 1:
+                optons = args['1']
+                if optons == "show":
+                    flag_action = optons
+                elif optons == "enable":
+                    flag_action = optons
+                elif optons == "disable":
+                    flag_action = optons
+                # elif optons == "set":
+                #     flag_action = optons
+                #     self.__ui_print_line("Use default freq list.")
+                #     file_name = "./data/i_have_a_dream.txt"
+            elif args['#'] == 2:
+                optons = args['1']
+                if optons == "set":
+                    file_name = args['2']
+                    flag_action = 'set'
+
+        if flag_action == 'set':
+            # read file
+            if not os.path.exists(file_name):
+                self.__ui_print_line(f"Error: File '{file_name}' not found.")
+                return False
+
+            # self.__ui_print_line(file_name)
+            file_raw = open(file_name)
+            text = file_raw.read()
+            file_raw.close()
+
+            # self.__ui_print_line(text)
+            file_data = FileData(text)
+            file_data.do_word_list()
+
+            appcgm = AppConfigManager()
+            output_file = os.path.join(appcgm.get_path('language'),freq_list_name)
+            self.freq_dict = file_data.get_freq_list()
+            try:
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    for key in self.freq_dict.keys():
+                        f.write(f"{key},{self.freq_dict[key]}\n")
+                    # for word, freq in freq_list:
+                    #     f.write(f"{word},{freq}\n")
+                self.__ui_print_line(f"Frequency list updated to '{output_file}' successfully.")
+            except IOError as e:
+                self.__ui_print_line(f"Error writing to file '{output_file}': {e}")
+                return False
+        elif flag_action == 'enable':
+            self.freq_dict = {}
+            appcgm = AppConfigManager()
+            input_file = os.path.join(appcgm.get_path('language'),freq_list_name)
+            if os.path.exists(input_file):
+                try:
+                    with open(input_file, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            parts = line.strip().split(',')
+                            if len(parts) == 2:
+                                word, freq = parts[0], int(parts[1])
+                                self.freq_dict[word] = freq
+                    self.__ui_print_line(f"Frequency list loaded from '{input_file}' successfully.")
+                except IOError as e:
+                    dbg_error(f"Error reading from file '{input_file}': {e}")
+                    return False
+                except ValueError:
+                    dbg_error(f"Error parsing frequency in '{input_file}'. Ensure frequency is an integer.")
+                    return False
+            # else:
+            #     dbg_error(f"Frequency list file '{input_file}' not found. Frequency feature disabled.")
+        elif flag_action == 'disable':
+            self.freq_list = {}
+            self.__ui_print_line(f"Reset freq list.")
+        elif flag_action == 'show':
+            self.__list_word(wordlist = file_data.word_list, title = "Freq words.", args = args)
+        else:
+            self.__ui_print_line(f"No options specify.")
+
+        return True
+    def __list_word(self, wordlist, title = "Word List", args = None):
+        flag_stats = False
+        flag_freq_sort = False
+        flag_reviewed = True
+        flag_known = True
+
+        if args is not None:
+            if 'stats' in args:
+                switch = args['stats']
+                if switch == 'on':
+                    flag_stats = True
+                else:
+                    flag_stats = False
+
+            if 'freq' in args:
+                switch = args['freq']
+                if switch == 'on':
+                    flag_freq_sort = True
+                else:
+                    flag_freq_sort = False
+
+            if 'reviewed' in args:
+                switch = args['reviewed']
+                if switch == 'on':
+                    flag_reviewed = True
+                else:
+                    flag_reviewed = False
+            if 'known' in args:
+                switch = args['known']
+                if switch == 'on':
+                    flag_known = True
+                else:
+                    flag_known = False
+
+        # Sort wordlist by frequency if freq_dict is available
+        if self.freq_dict and flag_freq_sort:
+            # Assign a default frequency of 0 to words not found in freq_dict
+            wordlist.sort(key=lambda word: self.freq_dict.get(word, 0), reverse=True)
+
+        if flag_stats:
+            self.op_list_statistic(wordlist)
+        else:
+            list_page = MemorizeListPage(wordlist = wordlist, wordbank = self.wordbank, title = title, reviewed = flag_reviewed, known = flag_known, freq_dict = self.freq_dict)
+            list_page.run()
+
     def cmd_text_input(self, args = None):
-        input_lines = []
+        input_lines = [""]
         self.__ui_print_line("Enter word list (press Enter on an empty line to finish):")
         while True:
             line = input()
@@ -425,21 +526,16 @@ class Operation:
             input_lines.append(line)
         text = "\n".join(input_lines)
 
-        # self.__ui_print_line(text)
+        self.__ui_print_line(text)
         file_data = FileData(text)
         file_data.do_word_list(sorting = False)
 
-        # self.__listing_word(file_data.word_list, file_data.word_counter)
-
-        # dbg_info(f"Len of list: {len(file_data.word_list)}", file_data.word_list)
-        list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank, title = "Text vocabs.")
-
-        list_page.run()
+        self.__list_word(wordlist = file_data.word_list, title = "Text vocabs.", args = args)
 
         return True
     def cmd_file_input(self, args = None, file = None):
         file_name = ""
-        flag_stats = False
+
         if file is not None:
             file_name = file
 
@@ -448,24 +544,12 @@ class Operation:
                 file_name = args['1']
                 if file_name == "sample":
                     file_name = "./data/i_have_a_dream.txt"
-            # else:
-            #     self.__ui_print_line(f"Error: No file specified.")
-            #     return False
-
-            if 'stats' in args:
-                switch = args['stats']
-                if switch == 'on':
-                    flag_stats = True
-                else:
-                    flag_stats = False
-            else:
-                flag_stats = False
 
         # read file
         if not os.path.exists(file_name):
             self.__ui_print_line(f"Error: File '{file_name}' not found.")
             return False
-        # file_name = "/mnt/data/workspace/code/list_vocabulary/data/i_have_a_dream.txt"
+
         # self.__ui_print_line(file_name)
         file_raw = open(file_name)
         text = file_raw.read()
@@ -475,35 +559,17 @@ class Operation:
         file_data = FileData(text)
         file_data.do_word_list()
 
-        if flag_stats:
-            self.op_list_statistic(file_data.word_list)
-        else:
-            list_page = MemorizeListPage(wordlist = file_data.word_list, wordbank = self.wordbank, title = "File vocabs.")
-            list_page.run()
+        self.__list_word(wordlist = file_data.word_list, title = "File vocabs.", args = args)
 
         return True
     def cmd_vocabs_builder_input(self, args = None, file = None):
         file_name = ""
-        flag_stats = False
         if file is not None:
             file_name = file
 
         if args is not None:
             if args['#'] == 1:
                 file_name = args['1']
-            # else:
-            #     self.__ui_print_line(f"Error: No file specified.")
-            #     return False
-
-            if 'stats' in args:
-                switch = args['stats']
-                if switch == 'on':
-                    flag_stats = True
-                else:
-                    flag_stats = False
-            else:
-                flag_stats = False
-
 
         # for koreader.
         con = sqlite3.connect(file_name)
@@ -513,34 +579,17 @@ class Operation:
             word_list.append(word)
         con.close()
 
-        if flag_stats:
-            self.op_list_statistic(word_list)
-        else:
-            list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = "Vocabs Builder.")
-            list_page.run()
+        self.__list_word(wordlist = word_list, title = "Vocabs builder.", args = args)
 
         return True
     def cmd_json_input(self, args = None, file = None):
         file_name = ""
-        flag_stats = False
         if file is not None:
             file_name = file
 
         if args is not None:
             if args['#'] == 1:
                 file_name = args['1']
-            # else:
-            #     self.__ui_print_line(f"Error: No file specified.")
-            #     return False
-
-            if 'stats' in args:
-                switch = args['stats']
-                if switch == 'on':
-                    flag_stats = True
-                else:
-                    flag_stats = False
-            else:
-                flag_stats = False
 
         # read file
         if not os.path.exists(file_name):
@@ -553,9 +602,6 @@ class Operation:
             self.dict_mgr.word_list_dict.buildDict(file_name)
 
             # # read word list.
-            # file_raw = open(file_name)
-            # text = file_raw.read()
-            # file_raw.close()
             json_word_list = []
             with open(file_name, "r", encoding="utf-8") as jfile:
                 # Load the entire JSON file as a list of entries
@@ -564,11 +610,7 @@ class Operation:
                     word = entry["word"]
                     json_word_list.append(word)
 
-            if flag_stats:
-                self.op_list_statistic(json_word_list)
-            else:
-                list_page = MemorizeListPage(wordlist = json_word_list, wordbank = self.wordbank, title = 'Json Words.', meaning = True)
-                list_page.run()
+            self.__list_word(wordlist = json_word_list, title = "Json Words", args = args)
 
         except Exception as e:
             dbg_error(e)

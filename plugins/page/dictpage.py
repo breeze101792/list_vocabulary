@@ -13,7 +13,7 @@ class DictData(PageShareData):
     pass
 
 class DictPage(PageCommandLineInterface):
-    def __init__(self, wordbank, title = 'Dictionary'):
+    def __init__(self, wordbank, title = 'Dictionary', llm_search = False):
         dict_data = DictData()
         super().__init__(share_data = dict_data, title = title)
 
@@ -23,7 +23,7 @@ class DictPage(PageCommandLineInterface):
         ## local variables
         self.dict_word_idx = 0
         self.dict_word_list = []
-        self.__flag_llm_search = False # default false
+        self.__flag_llm_search = llm_search # default false
 
         ## reg functions
         # NOTE. currently, 3~5 is reserved.

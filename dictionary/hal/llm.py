@@ -13,7 +13,7 @@ class LLM(Dictionary):
     cached_data = {}
     cached_dict_path = ""
     pending_searches = set()
-    _pending_lock = threading.Lock()
+    _ask_lock = threading.Lock()
 
     def __init__(self, dict_name = "LLM", dict_file=None, language = None):
         self.dict_name = dict_name
@@ -32,13 +32,15 @@ class LLM(Dictionary):
             self._load_cache()
 
         # this is for gemini.
-        google_api_key=os.environ.get("GEMINI_API_KEY")
+        google_api_key=os.environ.get("PYD_GEMINI_API_KEY")
+        if google_api_key != "":
+            google_api_key=os.environ.get("GEMINI_API_KEY")
         if google_api_key != "":
             self.api_key=google_api_key
             self.server_url="https://generativelanguage.googleapis.com/v1beta"
             self.model="gemini-2.5-flash"
 
-        openai_api_key=os.environ.get("OPENAI_API_KEY")
+        openai_api_key=os.environ.get("PYD_OPENAI_API_KEY")
         if openai_api_key != "" and google_api_key == "":
             self.api_key=openai_api_key
             self.server_url="https://api.openai.com/v1"
@@ -92,7 +94,15 @@ class LLM(Dictionary):
             return None
         return None
 
-    def ask(self, message, prompt = "You are a helpful assistant."):
+    def ask(self, message, prompt = "You are a helpful assistant.", extra_delay = 0):
+        ret = "Query fail."
+        with LLM._ask_lock:
+            ret = self._ask(message = message, prompt = prompt)
+            # FIXME: Temporary solution to avoid hitting rate limits.
+            time.sleep(1 + extra_delay)
+        return ret
+
+    def _ask(self, message, prompt = "You are a helpful assistant."):
 
         client = OpenAI(
             api_key=self.api_key,
@@ -108,8 +118,6 @@ class LLM(Dictionary):
         )
         dbg_debug(f"system: {prompt}")
         dbg_debug(f"user: {message}")
-        # FIXME: Temporary solution to avoid hitting rate limits.
-        time.sleep(1)
 
         # print(response.choices[0].message.content)
         return response.choices[0].message.content
@@ -192,8 +200,9 @@ Please adhere to the following rules:
         """
         message = f"Please provide the dictionary content for the {LLM.language} word '{query_word}'"
 
+        response = "query_word. Query fail."
         try:
-            response = self.ask(message = message, prompt = prompt)
+            response = self.ask(message = message, prompt = prompt, extra_delay = 2)
 
             if len(response) < len(query_word) or response == "WORD NOT FOUND":
                 dbg_debug(f"{query_word} not found.")
@@ -237,14 +246,13 @@ Please adhere to the following rules:
             word_obj.meaning = response
             return word_obj
         else:
-            with LLM._pending_lock:
-                if query_word in LLM.pending_searches:
-                    word_obj = PureWord()
-                    word_obj.word = query_word
-                    word_obj.dict_name = "LLM Search"
-                    word_obj.meaning = "Searching..."
-                    return word_obj
-                LLM.pending_searches.add(query_word)
+            if query_word in LLM.pending_searches:
+                word_obj = PureWord()
+                word_obj.word = query_word
+                word_obj.dict_name = "LLM Search"
+                word_obj.meaning = "Searching..."
+                return word_obj
+            LLM.pending_searches.add(query_word)
 
             thread = threading.Thread(target=self._search_worker, args=(query_word, store, notify))
             thread.daemon = True

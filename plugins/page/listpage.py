@@ -44,11 +44,18 @@ class ListPage(DictPage):
         else:
             status_left = f"Page: 0/0 "
 
+        current_word = f"{self.share_data.current_word}".rjust(12)
         if self.__freq_dict.get(self.share_data.current_word, 0) > 0:
-            freq_status = f"{self.__freq_dict.get(self.share_data.current_word, '0')}"
-            status_middle = f"{self.share_data.current_word} ({freq_status})"
+            freq_status = f"{self.__freq_dict.get(self.share_data.current_word, '0')}".ljust(4)
         else:
-            status_middle = f"{self.share_data.current_word}"
+            freq_status = " " * 4
+        status_middle = f"{current_word} {freq_status}"
+
+        # if self.__freq_dict.get(self.share_data.current_word, 0) > 0:
+        #     freq_status = f"{self.__freq_dict.get(self.share_data.current_word, '0')}"
+        #     status_middle = f"{self.share_data.current_word} ({freq_status})".center(30)
+        # else:
+        #     status_middle = f"{self.share_data.current_word}".center(30)
         # status_middle = f"{self.share_data.current_word}"
         status_right = f"{self.word_idx + 1}/{len(self.word_list)} "
         # tupple (left, right)

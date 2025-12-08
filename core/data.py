@@ -230,7 +230,7 @@ class FileData:
         word_counts_map.clear()
         word_counts_map.update(new_word_counts_map)
 
-    def do_word_list(self, sorting = True):
+    def do_word_list(self, sorting = False):
         # TODO need to find another way to remvoe those symbol except '
         # Note: The initial aggressive replacement of characters like apostrophes
         # might interfere with word_extractor's intended handling of contractions.
@@ -259,7 +259,8 @@ class FileData:
                     unique_words_ordered.append(word)
                     seen_words_for_order.add(word)
 
-        self.merge_to_base_form(word_counts_map)
+        # FIXME, still have bugs. maybe need a way to fix it.
+        # self.merge_to_base_form(word_counts_map)
 
         # Clear existing lists
         self.word_list = []

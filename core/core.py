@@ -34,17 +34,22 @@ class Core(CommandLineInterface):
 
         # register commands
 
-        # config
-        self.regist_cmd("freq", operation.cmd_freq, description="Set frequency list.", arg_list = ['set', 'enable', 'disable', 'show', 'file'], group='config')
+        # freq
+        self.regist_cmd("freq", operation.cmd_freq, description="Set frequency list.", arg_list = ['set', 'enable', 'disable', 'show'], group='freq')
+        self.regist_cmd("compare", operation.cmd_freq_cmp, description="Compare frequency list with files, adjust freq for you progress.", arg_list = ['freq', 'save'], group='freq')
 
         # ui functions
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')
         self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.", group='ui')
 
         # memorize words
-        self.regist_cmd("memorize", operation.cmd_memorize_words, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten', 'review', 'interval'],  group='ui')
+
+        self.regist_cmd("vocabulary", operation.cmd_vocabulary, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten', 'review', 'interval', 'reinforce'],  group='ui')
         self.regist_cmd("forgotten", operation.cmd_forgotten_words, description="Memorize forgotten vocabulary based on familiarity level.", arg_list = ['familiar', 'number'],  group='ui')
         self.regist_cmd("new", operation.cmd_new_words, description="Display today's newly added vocabulary.", arg_list = ['familiar'],  group='ui')
+
+        self.regist_cmd("reinforce", operation.cmd_reinforce_words, description="Reinforce memorize word in level 1.",  group='ui')
+        self.regist_cmd("review", operation.cmd_review_words, description="Review memorize word in level 2.",  group='ui')
 
         # input
         input_args = ['state', 'reviewed', 'known', 'stats']

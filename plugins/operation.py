@@ -250,7 +250,10 @@ class Operation:
         page_dict.run()
 
         return True
-    def cmd_memorize_words(self, args = None):
+
+    ## Vocabulary
+    def cmd_vocabulary(self, args = None):
+        # TODO, move it out to be a class.
         title = "Vocabulary Builder"
         word_idx = 0
         times_idx = 1
@@ -260,15 +263,28 @@ class Operation:
         familiar_target = 1
         times_target = -1
         list_number = 0
+
+        ## flags
         flag_reverse = False
         flag_meaning = False
+        flag_llm_search = False
+
         # default not show reviewed words.
         flag_reviewed_word = False
+        flag_reinforce_memorize = False
         flag_forgotten_word = None
         flag_new_word = None
+
         review_interval = 0
+        reinforce_interval = {0:1, 1:1, 2:1, 3:1, 4:2, 5:3}
 
         for each_idx in range(1, args['#'] + 1):
+            if args[str(each_idx)] == 'llm':
+                flag_llm_search = True
+
+            if args[str(each_idx)] == 'meaning':
+                flag_meaning = True
+
             if args[str(each_idx)] == 'reverse':
                 flag_reverse = True
 
@@ -283,6 +299,11 @@ class Operation:
                 flag_reviewed_word = True
                 flag_meaning = True
                 title = "Forgotten Words"
+
+            if args[str(each_idx)] == 'reinforce':
+                familiar_target = 1
+                title = "Reinforce Memorize"
+                flag_reinforce_memorize = True
 
             if args[str(each_idx)] == 'review':
                 list_number = 50
@@ -320,6 +341,12 @@ class Operation:
                 if (today_date - word_date).days < review_interval:
                     continue
 
+            if flag_reinforce_memorize is True and familiar_target == 1:
+                today_date = datetime.now().date()
+                word_date = datetime.fromtimestamp(each_word[timestamp_idx]).date()
+                if (today_date - word_date).days < reinforce_interval[each_word[times_idx]]:
+                    continue
+
             if each_word[familiar_idx] == familiar_target:
                 word_list.append(each_word[word_idx])
 
@@ -329,61 +356,45 @@ class Operation:
         if list_number != 0 and list_number < len(word_list):
             word_list = word_list[-list_number:]
 
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = title, reviewed = flag_reviewed_word, meaning = flag_meaning, announce = True, shuffle = True)
+        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = title, reviewed = flag_reviewed_word, meaning = flag_meaning, announce = True, shuffle = True, llm_search = flag_llm_search)
         list_page.run()
 
+        return True
+
+    def cmd_reinforce_words(self, args = None):
+
+        arg_idx = args['#'] + 1
+        args[str(arg_idx)] = 'reinforce'
+        args['#'] = arg_idx
+        self.cmd_vocabulary(args)
+        return True
+    def cmd_review_words(self, args = None):
+
+        arg_idx = args['#'] + 1
+        args[str(arg_idx)] = 'review'
+        args['#'] = arg_idx
+        self.cmd_vocabulary(args)
         return True
     def cmd_forgotten_words(self, args = None):
-        word_idx = 0
-        times_idx = 1
-        familiar_idx = 2
-        forgotten_idx = 3
 
-        familiar_target = 1
-        list_number = 0
-
-        if 'familiar' in args:
-            familiar_target = int(args['familiar'])
-
-        if 'number' in args:
-            list_number = int(args['number'])
-
-        word_list = []
-        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, forgotten = True):
-            if len(each_word) < 3:
-                continue
-            if each_word[familiar_idx] == familiar_target:
-                word_list.append(each_word[word_idx])
-
-        if list_number != 0 and list_number < len(word_list):
-            word_list = word_list[-list_number:]
-
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'Forgotten Words.', meaning = True, announce = True, shuffle = True)
-        list_page.run()
-
+        arg_idx = args['#'] + 1
+        args[str(arg_idx)] = 'forgotten'
+        args['#'] = arg_idx
+        self.cmd_vocabulary(args)
         return True
     def cmd_new_words(self, args = None):
-        word_idx = 0
-        times_idx = 1
-        familiar_idx = 2
-        forgotten_idx = 3
+        arg_idx = args['#'] + 1
+        args[str(arg_idx)] = 'new'
+        args['#'] = arg_idx
 
-        familiar_target = 1
-
-        if 'familiar' in args:
-            familiar_target = int(args['familiar'])
-
-        word_list = []
-        for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, today_new_words = True):
-            if len(each_word) < 3:
-                continue
-            if each_word[familiar_idx] == familiar_target:
-                word_list.append(each_word[word_idx])
-
-        list_page = MemorizeListPage(wordlist = word_list, wordbank = self.wordbank, title = 'New Words.', meaning = True, announce = True, shuffle = True)
-        list_page.run()
-
+        # current disable it.
+        # arg_idx += 1
+        # args[str(arg_idx)] = 'llm'
+        # args['#'] = arg_idx
+        self.cmd_vocabulary(args)
         return True
+
+    ## Frequency
     def cmd_freq(self, args = None, enable = None):
         flag_action = ""
         file_name = ""
@@ -433,10 +444,10 @@ class Operation:
             self.freq_dict = file_data.get_freq_list()
             try:
                 with open(output_file, 'w', encoding='utf-8') as f:
-                    for key in self.freq_dict.keys():
-                        f.write(f"{key},{self.freq_dict[key]}\n")
-                    # for word, freq in freq_list:
-                    #     f.write(f"{word},{freq}\n")
+                    # sort by it's value before write it out.
+                    sorted_freq_items = sorted(self.freq_dict.items(), key=lambda item: item[1], reverse=True)
+                    for word, freq in sorted_freq_items:
+                        f.write(f"{word},{freq}\n")
                 self.__ui_print_line(f"Frequency list updated to '{output_file}' successfully.")
             except IOError as e:
                 self.__ui_print_line(f"Error writing to file '{output_file}': {e}")
@@ -463,14 +474,114 @@ class Operation:
             # else:
             #     dbg_error(f"Frequency list file '{input_file}' not found. Frequency feature disabled.")
         elif flag_action == 'disable':
-            self.freq_list = {}
+            self.freq_dict = {}
             self.__ui_print_line(f"Reset freq list.")
         elif flag_action == 'show':
-            self.__list_word(wordlist = file_data.word_list, title = "Freq words.", args = args)
+            if self.freq_dict:
+                word_list = [ word for word,freq in self.freq_dict.items() ]
+                self.__list_word(wordlist = word_list, title = "Freq words.", args = args)
+            else:
+                self.__ui_print_line("Freq list is empty.")
         else:
             self.__ui_print_line(f"No options specify.")
 
         return True
+    def cmd_freq_cmp(self, args = None, enable = None):
+
+        # flags
+        flag_action = "list"
+
+        # variables
+        target_file_name = ""
+
+        db_file = ""
+        db_freq_threshold = 10
+        freq_list_name = 'freq.list'
+
+        ## Args
+        for each_idx in range(1, args['#'] + 1):
+            each_args = args[str(each_idx)]
+
+            if each_args in ['list', 'save']:
+                flag_action = each_args
+            else:
+                target_file_name=each_args
+
+
+        if 'freq' in args:
+            db_freq_threshold = int(args['freq'])
+
+        ## Proccess
+        if not os.path.exists(target_file_name):
+            self.__ui_print_line(f"Error: File '{target_file_name}' not found.")
+            return False
+
+        # db file
+        db_freq_dict = dict()
+        if db_file != "":
+            if not os.path.exists(target_file_name):
+                self.__ui_print_line(f"Error: File '{target_file_name}' not found.")
+                return False
+            file_raw = open(target_file_name)
+            text = file_raw.read()
+            file_raw.close()
+
+
+            db_file_data = FileData(text)
+            db_file_data.do_word_list()
+
+        elif self.freq_dict:
+            db_freq_dict = self.freq_dict
+        else:
+            print("Please sepcify freq list/file.")
+            return False
+
+        # target file
+        file_raw = open(target_file_name)
+        text = file_raw.read()
+        file_raw.close()
+
+        file_data = FileData(text)
+        file_data.do_word_list()
+        target_freq_dict = file_data.get_freq_list()
+
+        # sorting dict.
+        # sorted_db_freq_items = sorted(db_freq_dict.items(), key=lambda item: item[1], reverse=True)
+        sorted_tgt_freq_items = sorted(target_freq_dict.items(), key=lambda item: item[1], reverse=True)
+
+        # debug
+        # print(sorted_db_freq_items[:5])
+        # print(sorted_tgt_freq_items[:5])
+        
+
+        if flag_action == 'list':
+            word_list = []
+            for each_item in sorted_tgt_freq_items:
+                word = each_item[0]
+
+                word_db_freq = db_freq_dict.get(word, 0)
+                # use smaller then , so we filter out the word with freq more then target.
+                # and the target we already knows/memorized.
+                if word_db_freq < db_freq_threshold:
+                    word_list.append(word)
+
+            self.__list_word(wordlist = word_list, title = f"Freq Compare List (threshold: {db_freq_threshold})", args = args)
+        elif flag_action == 'save':
+            output_file = target_file_name + ".list"
+
+            with open(output_file, 'w', encoding='utf-8') as f:
+                for word, freq in sorted_tgt_freq_items:
+                    word_db_freq = db_freq_dict.get(word, 0)
+                    if word_db_freq < db_freq_threshold:
+                        f.write(f"{word},{freq}\n")
+            print(f"File save to : {output_file}")
+        else:
+            print(f"Unkonwn options.{flag_action}")
+            return False
+
+        return True
+
+    ## Input
     def __list_word(self, wordlist, title = "Word List", args = None):
         flag_stats = False
         flag_freq_sort = False

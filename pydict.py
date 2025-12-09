@@ -53,7 +53,7 @@ def main():
             pdcli.run()
     except:
         raise
-    finally:
-        appcgm.save()
+    # finally:
+    #     appcgm.save()
 if __name__ == '__main__':
     main()

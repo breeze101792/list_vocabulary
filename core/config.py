@@ -16,6 +16,11 @@ class AppConfig(BasicConfig):
     class variable:
         wordbank = 'wordbank.db'
         language = "english"
+    class llm:
+        server_url = ""
+        model = ""
+        api_key = ""
+        request_delay = 2 # for safty, we have already do 1s delay in llm request.
 
     # persistant config
     # class config:

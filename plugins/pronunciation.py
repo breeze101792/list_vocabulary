@@ -1,4 +1,3 @@
-
 import traceback
 import argparse
 import time
@@ -152,10 +151,11 @@ class Pronunciation:
 
             self.play_audio_stream(audio_stream)
         except Exception as e:
-            dbg_error(e)
+            dbg_warning(f"{key} query fail. Please check your connection.")
+            dbg_debug(e)
             traceback_output = traceback.format_exc()
-            dbg_error(traceback_output)
-            # if anything happens, we just clear the buffer.
+            dbg_debug(traceback_output)
+
             # if anything happens, we just clear the buffer.
             if key in Pronunciation.buffer_dictionary:
                 del Pronunciation.buffer_dictionary[key]

@@ -7,6 +7,7 @@ from openai import OpenAI
 from dictionary.word import PureWord
 from dictionary.dictionary import Dictionary
 from utility.debug import *
+from core.config import AppConfigManager
 
 class LLM(Dictionary):
     language = ""
@@ -30,21 +31,6 @@ class LLM(Dictionary):
         ## Cached data
         if len(LLM.cached_data) == 0:
             self._load_cache()
-
-        # this is for gemini.
-        google_api_key=os.environ.get("PYD_GEMINI_API_KEY")
-        if google_api_key != "":
-            google_api_key=os.environ.get("GEMINI_API_KEY")
-        if google_api_key != "":
-            self.api_key=google_api_key
-            self.server_url="https://generativelanguage.googleapis.com/v1beta"
-            self.model="gemini-2.5-flash"
-
-        openai_api_key=os.environ.get("PYD_OPENAI_API_KEY")
-        if openai_api_key != "" and google_api_key == "":
-            self.api_key=openai_api_key
-            self.server_url="https://api.openai.com/v1"
-            self.model="GPT-5"
 
     def _load_cache(self):
         """Loads the LLM cache from the cached_dict_path."""
@@ -85,7 +71,7 @@ class LLM(Dictionary):
                 word_obj = PureWord()
                 word_obj.word = query_word
                 word_obj.dict_name = self.dict_name
-                word_obj.meaning = LLM.cached_data[query_word]
+                word_obj.meaning = LLM.cached_data[query_word].lstrip('\n')
                 return word_obj
             else:
                 return None
@@ -103,14 +89,19 @@ class LLM(Dictionary):
         return ret
 
     def _ask(self, message, prompt = "You are a helpful assistant."):
+        appcgm = AppConfigManager()
+        api_key=appcgm.get("llm.api_key")
+        server_url=appcgm.get("llm.server_url")
+        model=appcgm.get("llm.model")
+        dbg_debug(f"{model}@{server_url}")
 
         client = OpenAI(
-            api_key=self.api_key,
-            base_url=self.server_url
+            api_key=api_key,
+            base_url=server_url
         )
 
         response = client.chat.completions.create(
-            model=self.model,
+            model=model,
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": message}
@@ -171,7 +162,6 @@ class LLM(Dictionary):
         prompt = f"""
 You are a detailed multilingual dictionary engine.
 When the user gives you a {LLM.language} word, provide the following details in plain text:
-
 Word: the exact word typed and its original form.
 
 Core meaning: Extract the core meaning of the word. The core meaning is the most basic, original, and central conceptual idea from which all extended senses, metaphorical uses, and phrasal uses can logically develop. Provide the core meaning as a single, concise English definition with an appropriate level of abstraction, avoiding overly specific contexts or examples. Show it on the following languages.
@@ -200,9 +190,11 @@ Please adhere to the following rules:
         """
         message = f"Please provide the dictionary content for the {LLM.language} word '{query_word}'"
 
+        appcgm = AppConfigManager()
+        extra_delay = appcgm.get('llm.request_delay')
         response = "query_word. Query fail."
         try:
-            response = self.ask(message = message, prompt = prompt, extra_delay = 2)
+            response = self.ask(message = message, prompt = prompt, extra_delay = extra_delay)
 
             if len(response) < len(query_word) or response == "WORD NOT FOUND":
                 dbg_debug(f"{query_word} not found.")
@@ -212,7 +204,7 @@ Please adhere to the following rules:
                     notify(query_word)
                 dbg_info(f"Cached '{query_word}' to LLM cache.")
                 if store:
-                    LLM.cached_data[query_word] = response
+                    LLM.cached_data[query_word] = response.lstrip('\n')
                     self._save_cache()
         except Exception as e:
             if query_word is not None:
@@ -227,6 +219,9 @@ Please adhere to the following rules:
         return response
 
     def openai_dict(self, query_word, cached = True, blocking = True, store = True, notify = None):
+        if query_word == "":
+            dbg_debug("Not query_word.")
+            return None
 
         # if cached:
         if cached and query_word in LLM.cached_data:

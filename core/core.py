@@ -2,6 +2,7 @@ from utility.cli import CommandLineInterface
 from plugins.operation import *
 from core.config import AppConfigManager
 from dictionary.manager import Manager as DictMgr
+from core.config import AppConfigManager
 
 class Core(CommandLineInterface):
     def __init__(self, promote='PYD'):
@@ -33,6 +34,8 @@ class Core(CommandLineInterface):
         self.history_path = os.path.join(appcgm.get_path('log'), f'{language}_command.history')
 
         # register commands
+        self.config_action_list = ['dump', 'set', 'get', 'save', 'reload']
+        self.regist_cmd("config", self.cmd_config, description="Config command.", arg_list = self.config_action_list, group='config')
 
         # freq
         self.regist_cmd("freq", operation.cmd_freq, description="Set frequency list.", arg_list = ['set', 'enable', 'disable', 'show'], group='freq')
@@ -43,7 +46,6 @@ class Core(CommandLineInterface):
         self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.", group='ui')
 
         # memorize words
-
         self.regist_cmd("vocabulary", operation.cmd_vocabulary, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten', 'review', 'interval', 'reinforce'],  group='ui')
         self.regist_cmd("forgotten", operation.cmd_forgotten_words, description="Memorize forgotten vocabulary based on familiarity level.", arg_list = ['familiar', 'number'],  group='ui')
         self.regist_cmd("new", operation.cmd_new_words, description="Display today's newly added vocabulary.", arg_list = ['familiar'],  group='ui')
@@ -67,5 +69,35 @@ class Core(CommandLineInterface):
         self.regist_cmd("dump_dict", dict_mgr.list_dictionary, description="List all available dictionaries.", group = 'debug')
     def debug_cmd_dump_db(self, args):
         self.wordbank.dump_all()
+        return True
+    def cmd_config(self, args):
+        appcgm = AppConfigManager()
+        var_action_list = self.config_action_list
+        var_action = ""
+
+        var_args = []
+        for each_idx in range(1, args['#'] + 1):
+            each_args = args[str(each_idx)]
+
+            if each_args in var_action_list:
+                var_action = each_args
+            else:
+                var_args.append(each_args)
+        dbg_debug(f"{var_action}: {len(var_args), var_args}")
+        if var_action == 'dump':
+            appcgm.dump()
+        elif var_action == 'save':
+            appcgm.save()
+        elif var_action == 'reload':
+            print("Some function may not be affected after restarted.")
+            appcgm.load()
+        elif var_action == 'set':
+            if len(var_args) == 2:
+                appcgm.set(var_args[0], var_args[1])
+                print(f"{var_args[0]}: {appcgm.get(var_args[0])}") 
+        elif var_action == 'get':
+            if len(var_args) == 1:
+                print(f"{var_args[0]}: {appcgm.get(var_args[0])}") 
+
         return True
 

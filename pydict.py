@@ -42,6 +42,7 @@ def main():
 
     # dbg_info(f"Get Language to {appcgm.get('variable.language')}, {appcgm.get_path('language')}")
     # open file
+    pdcli = None
     try:
         if not options.debug:
             pdcli = Core(promote = f"{options.lang.lower()}@pyd ")
@@ -53,7 +54,9 @@ def main():
             pdcli.run()
     except:
         raise
-    # finally:
-    #     appcgm.save()
+    finally:
+        if pdcli:
+            pdcli.quit()
+        # appcgm.save()
 if __name__ == '__main__':
     main()

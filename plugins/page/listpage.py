@@ -25,8 +25,27 @@ class ListPage(DictPage):
 
         self.regist_key(["n", "p"], self.key_walk_list, "Navigate the word list.")
 
+        self.regist_cmd("goto", self.cmd_goto, "goto specify number of words on the word list.(this will still respect the ignore commands.)")
         self.regist_cmd("shuffle", self.cmd_shuffle, "Shuffle the word list.")
 
+    def cmd_goto(self, args = None):
+        goto = self.word_idx
+
+        if args is not None:
+            if args['#'] == 1:
+                if args['1'].isdigit():
+                    goto = int(args['1'])
+                else:
+                    print("Please enter line number.")
+                    return False
+
+        if self.word_idx == goto:
+            return True
+
+        self.word_idx = goto
+
+        self.key_walk_list(key_press = "")
+        return True
     def cmd_shuffle(self, args = None):
         self.word_idx = -1
         self.share_data.current_word = ""

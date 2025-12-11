@@ -276,7 +276,7 @@ class Operation:
         flag_new_word = None
 
         review_interval = 0
-        reinforce_interval = {0:1, 1:1, 2:1, 3:1, 4:2, 5:3}
+        reinforce_interval = [{}, {0:1, 1:1, 2:1, 3:1, 4:2, 5:3}, {0:7, 1:7, 2:15, 3:30}]
 
         for each_idx in range(1, args['#'] + 1):
             if args[str(each_idx)] == 'llm':
@@ -341,10 +341,10 @@ class Operation:
                 if (today_date - word_date).days < review_interval:
                     continue
 
-            if flag_reinforce_memorize is True and familiar_target == 1:
+            if flag_reinforce_memorize is True and familiar_target in {1, 2}:
                 today_date = datetime.now().date()
                 word_date = datetime.fromtimestamp(each_word[timestamp_idx]).date()
-                if (today_date - word_date).days < reinforce_interval[each_word[times_idx]]:
+                if (today_date - word_date).days < reinforce_interval[each_word[familiar_idx]][each_word[times_idx]]:
                     continue
 
             if each_word[familiar_idx] == familiar_target:
@@ -582,11 +582,12 @@ class Operation:
         return True
 
     ## Input
-    def __list_word(self, wordlist, title = "Word List", args = None):
+    def __list_word(self, wordlist, title = "Word List", customize_freq_dict = None, args = None):
         flag_stats = False
         flag_freq_sort = False
         flag_reviewed = True
         flag_known = True
+        sort_freq_dict = None
 
         if args is not None:
             if 'stats' in args:
@@ -600,6 +601,12 @@ class Operation:
                 switch = args['freq']
                 if switch == 'on':
                     flag_freq_sort = True
+                    print("Using system freq dict list")
+                    sort_freq_dict = self.freq_dict
+                elif switch == 'file':
+                    print("Using file freq dict list")
+                    flag_freq_sort = True
+                    sort_freq_dict = customize_freq_dict
                 else:
                     flag_freq_sort = False
 
@@ -616,15 +623,15 @@ class Operation:
                 else:
                     flag_known = False
 
-        # Sort wordlist by frequency if freq_dict is available
-        if self.freq_dict and flag_freq_sort:
-            # Assign a default frequency of 0 to words not found in freq_dict
-            wordlist.sort(key=lambda word: self.freq_dict.get(word, 0), reverse=True)
+        # Sort wordlist by frequency if sort_freq_dict is available
+        if sort_freq_dict and flag_freq_sort:
+            # Assign a default frequency of 0 to words not founfreq_dict
+            wordlist.sort(key=lambda word: sort_freq_dict.get(word, 0), reverse=True)
 
         if flag_stats:
             self.op_list_statistic(wordlist)
         else:
-            list_page = MemorizeListPage(wordlist = wordlist, wordbank = self.wordbank, title = title, reviewed = flag_reviewed, known = flag_known, freq_dict = self.freq_dict)
+            list_page = MemorizeListPage(wordlist = wordlist, wordbank = self.wordbank, title = title, reviewed = flag_reviewed, known = flag_known, freq_dict = sort_freq_dict)
             list_page.run()
 
     def cmd_text_input(self, args = None):
@@ -670,7 +677,7 @@ class Operation:
         file_data = FileData(text)
         file_data.do_word_list()
 
-        self.__list_word(wordlist = file_data.word_list, title = "File vocabs.", args = args)
+        self.__list_word(wordlist = file_data.word_list, title = "File vocabs.", customize_freq_dict = file_data.get_freq_list(), args = args)
 
         return True
     def cmd_vocabs_builder_input(self, args = None, file = None):

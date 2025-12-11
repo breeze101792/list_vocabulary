@@ -4,6 +4,10 @@ from core.config import AppConfigManager
 from dictionary.manager import Manager as DictMgr
 from core.config import AppConfigManager
 
+# save status
+from plugins.pronunciation import Pronunciation
+from dictionary.hal.llm import LLM
+
 class Core(CommandLineInterface):
     def __init__(self, promote='PYD'):
         appcgm = AppConfigManager()
@@ -100,4 +104,11 @@ class Core(CommandLineInterface):
                 print(f"{var_args[0]}: {appcgm.get(var_args[0])}") 
 
         return True
+    def quit(self):
+        # print("Saving Core status...")
+        # save status
+        Pronunciation.save()
+        LLM.save_cache()
+
+        print("GoodBye!")
 

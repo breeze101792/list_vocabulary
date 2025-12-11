@@ -30,9 +30,10 @@ class LLM(Dictionary):
 
         ## Cached data
         if len(LLM.cached_data) == 0:
-            self._load_cache()
+            LLM.load_cache()
 
-    def _load_cache(self):
+    @classmethod
+    def load_cache(self):
         """Loads the LLM cache from the cached_dict_path."""
         LLM.cached_data = {}
         if os.path.exists(LLM.cached_dict_path):
@@ -47,7 +48,8 @@ class LLM(Dictionary):
                 LLM.cached_data = {}
         return LLM.cached_data
 
-    def _save_cache(self):
+    @classmethod
+    def save_cache(self):
         """Saves the LLM cache to the cached_dict_path."""
         try:
             with open(LLM.cached_dict_path, 'w', encoding='utf-8') as f:
@@ -59,7 +61,6 @@ class LLM(Dictionary):
         try:
             if query_word in LLM.cached_data:
                 del LLM.cached_data[query_word]
-                self._save_cache()
                 return True
         except KeyError:
             return False
@@ -111,7 +112,7 @@ class LLM(Dictionary):
         dbg_debug(f"user: {message}")
 
         # print(response.choices[0].message.content)
-        return response.choices[0].message.content
+        return response.choices[0].message.content.lstrip('\n').rstrip('\n') + f"\n\nBy {model}"
 
     def _search_worker(self, query_word, store = True, notify = None):
         prompt_definition = f""" 
@@ -204,8 +205,7 @@ Please adhere to the following rules:
                     notify(query_word)
                 dbg_info(f"Cached '{query_word}' to LLM cache.")
                 if store:
-                    LLM.cached_data[query_word] = response.lstrip('\n')
-                    self._save_cache()
+                    LLM.cached_data[query_word] = response
         except Exception as e:
             if query_word is not None:
                 notify(query_word + ". Connection error.")

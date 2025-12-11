@@ -7,15 +7,60 @@ from pydub.playback import play
 import simpleaudio as sa
 import io
 import threading
+import pickle
+from collections import OrderedDict
 
 from utility.debug import *
+from core.config import AppConfigManager
+
 class Pronunciation:
-    buffer_dictionary = {}
+    buffer_dictionary = OrderedDict()
+    max_buffer_count = 100
     def __init__(self):
-        self.__max_buffer_count = 100
         self.current_playback_thread: threading.Thread | None = None
         self.stop_current_playback_event: threading.Event = threading.Event()
         self.thread_management_lock = threading.Lock()
+
+        if len(Pronunciation.buffer_dictionary) == 0:
+            Pronunciation.load()
+
+    @classmethod
+    def checknClean(self):
+        if len(Pronunciation.buffer_dictionary) <= Pronunciation.max_buffer_count:
+            return
+
+        threshold = int(Pronunciation.max_buffer_count * 0.8)
+        remove_nu = len(Pronunciation.buffer_dictionary) - threshold
+        remove_keys = list(Pronunciation.buffer_dictionary.keys())[:remove_nu]
+
+        for oldest_key in remove_keys:
+            del Pronunciation.buffer_dictionary[oldest_key]
+
+    @classmethod
+    def save(self):
+
+        appcgm = AppConfigManager()
+
+        Pronunciation.checknClean()
+        data_to_save = Pronunciation.buffer_dictionary
+
+        root_path = appcgm.get_path('language')
+        file_path = os.path.join(root_path, "pronunciation.pkl")
+
+        with open(file_path, 'wb') as file:
+            pickle.dump(data_to_save, file)
+
+    @classmethod
+    def load(self):
+        appcgm = AppConfigManager()
+
+        root_path = appcgm.get_path('language')
+        file_path = os.path.join(root_path, "pronunciation.pkl")
+
+        with open(file_path, 'rb') as file:
+            loaded_data = OrderedDict(pickle.load(file))
+
+        Pronunciation.buffer_dictionary = loaded_data
 
     def generate_audio_stream(self, text: str, lang: str) -> io.BytesIO:
         """
@@ -131,6 +176,8 @@ class Pronunciation:
         try:
             key = f"{text}-{lang}"
             if key in Pronunciation.buffer_dictionary:
+                # every we move the word to the end, so we rm those use less.
+                Pronunciation.buffer_dictionary.move_to_end(key)
                 audio_stream = Pronunciation.buffer_dictionary[key]
                 audio_stream.seek(0) # Rewind the stream to play from the beginning
             else:
@@ -138,11 +185,7 @@ class Pronunciation:
                 # TODO, check if dictionary is too big then we remove some of it.
 
                 Pronunciation.buffer_dictionary[key] = audio_stream
-                # If the buffer dictionary grows too large, remove the oldest item
-                if len(Pronunciation.buffer_dictionary) > self.__max_buffer_count:
-                    # Remove the first item (oldest) to keep the dictionary size manageable
-                    oldest_key = next(iter(Pronunciation.buffer_dictionary))
-                    del Pronunciation.buffer_dictionary[oldest_key]
+                Pronunciation.checknClean()
 
             # Check if a new request has come in while generating audio
             if self.stop_current_playback_event.is_set():

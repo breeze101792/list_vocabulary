@@ -40,6 +40,7 @@ class Core(CommandLineInterface):
         # register commands
         self.config_action_list = ['dump', 'set', 'get', 'save', 'reload']
         self.regist_cmd("config", self.cmd_config, description="Config command.", arg_list = self.config_action_list, group='config')
+        self.regist_cmd("save", self.cmd_data_save, description="Save data.", group='config')
 
         # freq
         self.regist_cmd("freq", operation.cmd_freq, description="Set frequency list.", arg_list = ['set', 'enable', 'disable', 'show'], group='freq')
@@ -47,7 +48,7 @@ class Core(CommandLineInterface):
 
         # ui functions
         self.regist_cmd("dictionary", operation.cmd_search_dictionary, description="Interactive dictionary search and vocabulary grading.", group='ui')
-        self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.", group='ui')
+        self.regist_cmd("stats", operation.cmd_statistic, description="Display vocabulary statistics.", arg_list = ['times', 'familiar'], group='ui')
 
         # memorize words
         self.regist_cmd("vocabulary", operation.cmd_vocabulary, description="Memorize vocabulary based on familiarity level and other criteria.", arg_list = ['times', 'familiar', 'number', 'reverse', 'new', 'forgotten', 'review', 'interval', 'reinforce'],  group='ui')
@@ -104,11 +105,15 @@ class Core(CommandLineInterface):
                 print(f"{var_args[0]}: {appcgm.get(var_args[0])}") 
 
         return True
-    def quit(self):
+    def cmd_data_save(self, args = None, quite = False):
+        # we have save on page exit, but still have this api for user to call.
         # print("Saving Core status...")
-        # save status
         Pronunciation.save()
         LLM.save_cache()
-
+        if not quite:
+            print("Data saved.")
+        return True
+    def quit(self):
+        self.cmd_data_save(quite = True)
         print("GoodBye!")
 

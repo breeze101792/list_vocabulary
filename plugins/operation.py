@@ -214,27 +214,53 @@ class Operation:
         return True
 
     def cmd_statistic(self, args):
-        # {1: 75, 2: 153, 3: 0, 4: 0, 5: 0}
-        stats = self.wordbank.query_for_statistic()
+        flag_action = 'all'
+        target_familiar = 1
 
-        other_new_count = len(self.wordbank.quer_for_all_word(familiar = 0, today_new_words = True))
-        new_count = len(self.wordbank.quer_for_all_word(today_new_words = True)) - other_new_count
-
-        other_forgotten_count = len(self.wordbank.quer_for_all_word(familiar = 0, forgotten = True))
-        forgotten_count = len(self.wordbank.quer_for_all_word(forgotten = True)) - other_forgotten_count
-
-        other_reviewed_count = len(self.wordbank.quer_for_all_word(familiar = 0, reviewed = True))
-        reviewed_count = len(self.wordbank.quer_for_all_word(reviewed = True)) - other_reviewed_count
+        for each_idx in range(1, args['#'] + 1):
+            if args[str(each_idx)] == 'times':
+                flag_action = 'times'
+        if 'familiar' in args:
+            target_familiar = int(args['familiar'])
 
         data = list()
-        for key in stats.keys():
-            if stats[key] == 0:
-                continue
-            data.append([f'Level {key}', stats[key]])
+        if flag_action == 'all':
 
-        data.append([f"Reviewed", reviewed_count])
-        data.append([f"New", new_count])
-        data.append([f"Forgotten", forgotten_count])
+            # {1: 75, 2: 153, 3: 0, 4: 0, 5: 0}
+            stats = self.wordbank.query_for_statistic()
+
+            other_new_count = len(self.wordbank.quer_for_all_word(familiar = 0, today_new_words = True))
+            new_count = len(self.wordbank.quer_for_all_word(today_new_words = True)) - other_new_count
+
+            other_forgotten_count = len(self.wordbank.quer_for_all_word(familiar = 0, forgotten = True))
+            forgotten_count = len(self.wordbank.quer_for_all_word(forgotten = True)) - other_forgotten_count
+
+            other_reviewed_count = len(self.wordbank.quer_for_all_word(familiar = 0, reviewed = True))
+            reviewed_count = len(self.wordbank.quer_for_all_word(reviewed = True)) - other_reviewed_count
+
+            other_count = len(self.wordbank.quer_for_all_word(familiar = 0))
+
+            for key in stats.keys():
+                if stats[key] == 0:
+                    continue
+                data.append([f'Level {key}', stats[key]])
+
+            data.append([f'Others', other_count])
+
+            data.append([f"Reviewed", reviewed_count])
+            data.append([f"New", new_count])
+            data.append([f"Forgotten", forgotten_count])
+        else:
+            times_idx = 1
+
+            stats = self.wordbank.query_for_statistic()
+            data.append([f'Level {target_familiar}', stats[target_familiar]])
+
+            for idx in range(6):
+                times_count = len(self.wordbank.quer_for_all_word(familiar = target_familiar, times = idx))
+
+                data.append([f'Times {idx}', times_count])
+
         headers = ['Title', 'Count']
 
         # tabulate creates a nice table
@@ -332,7 +358,9 @@ class Operation:
         for each_word in self.wordbank.quer_for_all_word(familiar = familiar_target, forgotten = flag_forgotten_word, today_new_words = flag_new_word):
             if len(each_word) < 3:
                 continue
-            if times_target != -1 and each_word[times_idx] > times_target:
+            word_familiar = int(each_word[familiar_idx])
+            word_times = int(each_word[times_idx])
+            if times_target != -1 and word_times > times_target:
                 continue
 
             if review_interval > 0:
@@ -344,10 +372,10 @@ class Operation:
             if flag_reinforce_memorize is True and familiar_target in {1, 2}:
                 today_date = datetime.now().date()
                 word_date = datetime.fromtimestamp(each_word[timestamp_idx]).date()
-                if (today_date - word_date).days < reinforce_interval[each_word[familiar_idx]][each_word[times_idx]]:
+                if (today_date - word_date).days < reinforce_interval[word_familiar][word_times]:
                     continue
 
-            if each_word[familiar_idx] == familiar_target:
+            if word_familiar == familiar_target:
                 word_list.append(each_word[word_idx])
 
         if flag_reverse is True:
@@ -587,7 +615,7 @@ class Operation:
         flag_freq_sort = False
         flag_reviewed = True
         flag_known = True
-        sort_freq_dict = None
+        sort_freq_dict = {}
 
         if args is not None:
             if 'stats' in args:

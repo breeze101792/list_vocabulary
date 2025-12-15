@@ -53,7 +53,7 @@ class LLM(Dictionary):
         """Saves the LLM cache to the cached_dict_path."""
         try:
             with open(LLM.cached_dict_path, 'w', encoding='utf-8') as f:
-                json.dump(LLM.cached_data, f, ensure_ascii=False, indent=4)
+                json.dump(LLM.cached_data, f, ensure_ascii=True, indent=4)
             dbg_info(f"LLM cache saved to '{LLM.cached_dict_path}'.")
         except Exception as e:
             dbg_error(f"Error saving LLM cache file: {e}")

@@ -15,7 +15,7 @@ from core.config import AppConfigManager
 
 class Pronunciation:
     buffer_dictionary = OrderedDict()
-    max_buffer_count = 100
+    max_buffer_count = 200
     def __init__(self):
         self.current_playback_thread: threading.Thread | None = None
         self.stop_current_playback_event: threading.Event = threading.Event()

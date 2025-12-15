@@ -36,6 +36,11 @@ class DictPage(PageCommandLineInterface):
         self.regist_cmd("llm", self.cmd_llm, "Search for words using an LLM.", arg_list = ['remove', 'async', 'search', 'store', 'on', 'off'])
         self.regist_cmd("pronounce", self.cmd_pronounce, "Pronounce a specified word.")
 
+    def exit(self, data = None):
+        dbg_trace("Save pronunciation/llm data on exit.")
+        Pronunciation.save()
+        LLM.save_cache()
+        return True
     def refresh(self, data = None):
         self.dict_word_idx = 0
         self.dict_word_list = []
